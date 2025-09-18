@@ -36,7 +36,7 @@ function fncAddProduct(){
 		return;
 	}
 
-	document.detailForm.action='/addProduct.do';
+	document.detailForm.action='/product/addProduct';
 	document.detailForm.submit();
 }
 
@@ -51,7 +51,7 @@ function resetData(){
 
 <form name="detailForm" method="post">
 
-<table width="100%" height="37" border="0" cellpadding="0"	cellspacing="0">
+<table width="100%" height="37" border="0" cellpadding="0" cellspacing="0">
 	<tr>
 		<td width="15" height="37">
 			<img src="/images/ct_ttl_img01.gif" width="15" height="37"/>
@@ -65,7 +65,7 @@ function resetData(){
 			</table>
 		</td>
 		<td width="12" height="37">
-			<img src="/images/ct_ttl_img03.gif"	width="12" height="37"/>
+			<img src="/images/ct_ttl_img03.gif" width="12" height="37"/>
 		</td>
 	</tr>
 </table>

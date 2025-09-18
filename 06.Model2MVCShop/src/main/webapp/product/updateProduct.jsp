@@ -29,14 +29,14 @@ function fncAddProduct(){
   if(!manuDate){ alert("제조일자는 반드시 입력하셔야 합니다."); return; }
   if(!price){ alert("가격은 반드시 입력하셔야 합니다."); return; }
 
-  f.action = "${cPath}/updateProduct.do";
+  f.action = "${cPath}/product/updateProduct";
   f.method = "post";
   f.submit();
 }
 </script>
 </head>
 
-<form name="detailForm" action="${cPath}/updateProduct.do" method="post" style="display:inline;">
+<form name="detailForm" action="${cPath}/product/updateProduct" method="post" style="display:inline;">
   <input type="hidden" name="prodNo" value="${product.prodNo}"/>
 
   <!-- 상단 타이틀 -->

@@ -63,7 +63,7 @@
           <tr>
             <td class="Depth03">
               <!-- 판매상품등록 (뷰 진입 GET) -->
-              <a class="a-like" target="rightFrame" href="${cPath}/product/addProductView">판매상품등록</a>
+              <a class="a-like" target="rightFrame" href="${cPath}/product/addProduct">판매상품등록</a>
             </td>
           </tr>
           <tr>

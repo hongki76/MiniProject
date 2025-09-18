@@ -105,14 +105,14 @@
           <td width="50" height="23">
 			<c:choose>
 			  <c:when test="${not empty user and user.role eq 'admin'}">
-			    <form action="${cPath}/updateProductView.do" method="post" style="display:inline;">
+			    <form action="${cPath}/product/updateProduct" method="post" style="display:inline;">
 			      <input type="hidden" name="prodNo" value="${product.prodNo}" />
 			      <button type="submit" class="a-like">수정</button>
 			    </form>
 			  </c:when>
 			
 			  <c:otherwise>
-			    <form action="${cPath}/addPurchaseView.do" method="post" style="display:inline;">
+			    <form action="${cPath}/parchase/addPurchase" method="post" style="display:inline;">
 			      <input type="hidden" name="prodNo" value="${product.prodNo}" />
 			      <button type="submit"
 			              class="${proTranCode eq '0' or empty proTranCode ? 'txt-link' : 'txt-disabled'}"

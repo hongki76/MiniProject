@@ -63,7 +63,7 @@ function fncGetList(currentPage, orderByPriceAsc){
 </table>
 
 <!-- =========== 검색/페이징 전용 form (중첩 방지) =========== -->
-<form name="detailForm" action="${cPath}/getProductList.do" method="post">
+<form name="detailForm" action="${cPath}/product/getProductList" method="post">
   <input type="hidden" id="currentPage" name="currentPage" value="${empty resultPage.currentPage ? 1 : resultPage.currentPage}"/>
   <input type="hidden" id="orderByPriceAsc" name="orderByPriceAsc" value="${search.orderByPriceAsc}"/>
 
@@ -131,7 +131,7 @@ function fncGetList(currentPage, orderByPriceAsc){
 
       <!-- 상품명: 개별 POST 폼 (중첩 아님) -->
       <td align="left">
-        <form action="/getProduct.do" method="post" style="display:inline;">
+        <form action="/product/getProduct" method="post" style="display:inline;">
           <input type="hidden" name="prodNo" value="${product.prodNo}" />
           <button type="submit" class="a-like">${product.prodName}</button>
         </form>
@@ -148,7 +148,7 @@ function fncGetList(currentPage, orderByPriceAsc){
         <c:choose>
           <c:when test="${not empty user and user.role eq 'admin' and product.proTranCode eq '1'}">
             ${product.proTranState}
-            <form action="/updateTranCodeByProduct.do" method="post" style="display:inline;">
+            <form action="/purchase/updateTranCodeByProduct" method="post" style="display:inline;">
               <input type="hidden" name="prodNo" value="${product.prodNo}" />
               <input type="hidden" name="tranStatusCode" value="2" />
               <button type="submit" class="a-like">배송하기</button>

@@ -55,11 +55,3 @@
     </c:otherwise>
   </c:choose>
 </div>
-
-<!-- 자바스크립트가 꺼진 경우 대비(선택 사항): POST 유지 -->
-<noscript>
-  <form method="post" action="${cPath}/listProduct.do" style="display:inline;">
-    <input type="hidden" name="currentPage" value="${curr}" />
-    <button type="submit">현재 페이지로 이동</button>
-  </form>
-</noscript>

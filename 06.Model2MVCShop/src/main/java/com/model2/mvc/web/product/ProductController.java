@@ -24,11 +24,9 @@ import com.model2.mvc.service.domain.Product;
 import com.model2.mvc.service.domain.User;
 import com.model2.mvc.service.product.ProductService;
 
-/**
- * ProductController (String return type)
- * - 기존 로직/구조는 유지하고, 반환형만 String 으로 변경
- */
+// 상품관리 Controller
 @Controller
+@RequestMapping("/product/*")
 public class ProductController {
 
     // ====== Field ======
@@ -37,52 +35,52 @@ public class ProductController {
     private ProductService productService;
 
     @Resource
-    private ServletContext servletContext; // pageUnit/pageSize init-param 사용
+    private ServletContext servletContext;
 
-    // ====== Helpers ======
-	//==> classpath:config/common.properties  ,  classpath:config/commonservice.xml 참조 할것
-	@Value("#{commonProperties['pageUnit'] ?: 3}")
+	@Value("#{commonProperties['pageUnit']}")
 	int pageUnit;
 	
-	@Value("#{commonProperties['pageSize'] ?: 2}")
+	@Value("#{commonProperties['pageSize']}")
 	int pageSize;
 
     // ====== Create ======
-	@RequestMapping(value = "/addProductView.do", method = { RequestMethod.GET, RequestMethod.POST })
-	public String addProductView() {
+	@RequestMapping(value = "addProduct", method = RequestMethod.GET)
+	public String addProduct() {
 	    return "/product/addProductView.jsp";
 	}
 
-    @RequestMapping(value = "/addProduct.do", method = RequestMethod.POST)
+    @RequestMapping(value = "addProduct", method = RequestMethod.POST)
     public String addProduct(@ModelAttribute("product") Product product) throws Exception {
-        productService.addProduct(product);
-        return "redirect:/getProductList.do";
+    	System.out.println("ProductController.addProduct() - POST");
+    	
+    	productService.addProduct(product);
+        return "redirect:/product/getProductList";
     }
 
     // ====== Read ======
-    @RequestMapping(value = "/getProduct.do", method = RequestMethod.POST)
-    public String getProduct(@RequestParam("prodNo") int prodNo, Model model) throws Exception {
-        Product product = productService.getProduct(prodNo);
+    @RequestMapping(value = "/getProduct", method = RequestMethod.POST)
+    public String getProduct(@RequestParam("prodNo") int prodNo, Model model) throws Exception {   	
+    	Product product = productService.getProduct(prodNo);
         model.addAttribute("product", product);
         return "/product/getProduct.jsp";
     }
 
     // ====== Update ======
-    @RequestMapping(value = "/updateProductView.do", method = { RequestMethod.GET, RequestMethod.POST })
-    public String updateProductView(@RequestParam("prodNo") int prodNo, Model model) throws Exception {
+    @RequestMapping(value = "updateProduct", method = { RequestMethod.GET, RequestMethod.POST })
+    public String updateProduct(@RequestParam("prodNo") int prodNo, Model model) throws Exception {
         Product product = productService.getProduct(prodNo);
         model.addAttribute("product", product);
         return "/product/updateProduct.jsp";
     }
 
-    @RequestMapping(value = "/updateProduct.do", method = RequestMethod.POST)
+    @RequestMapping(value = "updateProduct", method = RequestMethod.POST)
     public String updateProduct(@ModelAttribute("product") Product product) throws Exception {
         productService.updateProduct(product);
-        return "forward:/getProduct.do";
+        return "forward:/product/getProduct";
     }
 
     // ====== List ======
-    @RequestMapping(value = "/getProductList.do", method = { RequestMethod.GET, RequestMethod.POST })
+    @RequestMapping(value = "getProductList", method = { RequestMethod.GET, RequestMethod.POST })
     public String getProductList(
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage,
             @RequestParam(value = "searchCondition", required = false) String searchCondition, // 0:name, 1:detail
@@ -124,15 +122,13 @@ public class ProductController {
                 String proTranState = resolveTranState(session, proTranCode);
                 tranStateMap.put(p.getProdNo(), proTranState);
                 p.setProTranState(proTranState);
-                System.out.println("##### [Debug] ProductController.getProductList() - prodNo:" + p.getProdNo() 
-                	+ ", proTranCode: " + p.getProTranCode() + ", proTranState: " + p.getProTranState());
             }
         }
 
         Page resultPage = new Page(currentPage, totalCount, pageUnit, pageSize);
 
         model.addAttribute("list", list);
-        model.addAttribute("tranStateMap", tranStateMap); // ★ 추가
+        model.addAttribute("tranStateMap", tranStateMap);
         model.addAttribute("resultPage", resultPage);
         model.addAttribute("search", search);
 
