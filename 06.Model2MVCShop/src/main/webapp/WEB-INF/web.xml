@@ -25,19 +25,6 @@
 		</param-value>
 	</context-param>
 
-	<!-- Spring 에서 관리 :  common.properties -->
-	<!-- 게시판 Page 하단 Page 번호 개수 예)  이전 1 2 3 4 5  이후
-	<context-param>
-		<param-name>pageUnit</param-name>
-		<param-value>5</param-value>
-	</context-param> -->
-	
-	<!--  게시판 Page 에 보여주는 게시물 수 
-	<context-param>
-		<param-name>pageSize</param-name>
-		<param-value>3</param-value>
-	</context-param>-->
-	
 	<!-- :: Spring API 에 제공하는 CharacterEncodingFilter 로 한글 인코딩처리 -->	
 	<filter>
 		<filter-name>encodingFilter</filter-name>
@@ -70,7 +57,7 @@
     <!-- 확장자가 ~.do 경우 Servlet Mapping ::  -->
 	  <servlet-mapping>
 	    <servlet-name>action</servlet-name>
-	    <url-pattern>*.do</url-pattern>
+	    <url-pattern>/</url-pattern>
 	  </servlet-mapping>
 	
 	<welcome-file-list>

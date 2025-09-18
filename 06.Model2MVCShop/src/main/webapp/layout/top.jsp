@@ -36,7 +36,7 @@
 	          <td width="14">&nbsp;</td>
 	          <td width="56">
 		          <% if(user != null) {  %>
-		            	<a href="/logout.do" target="_parent">logout</a>  
+		            	<a href="/user/logout" target="_parent">logout</a>  
 		           <% } %>
 	          </td>
 	        </tr>

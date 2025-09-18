@@ -44,7 +44,7 @@ function fncAddUser() {
 		document.detailForm.phone.value = "";
 	}
 		
-	document.detailForm.action='/addUser.do';
+	document.detailForm.action='/addUser';
 	document.detailForm.submit();
 }
 

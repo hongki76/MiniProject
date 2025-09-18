@@ -36,7 +36,7 @@
           <tr>
             <td class="Depth03">
               <a class="a-like" target="rightFrame"
-                 href="${cPath}/getUser.do?userId=${fn:escapeXml(user.userId)}">개인정보조회</a>
+                 href="${cPath}/user/getUser?userId=${fn:escapeXml(user.userId)}">개인정보조회</a>
             </td>
           </tr>
         </c:if>
@@ -45,7 +45,7 @@
         <c:if test="${not empty user and user.role eq 'admin'}">
           <tr>
             <td class="Depth03">
-              <a class="a-like" target="rightFrame" href="${cPath}/listUser.do">회원정보조회</a>
+              <a class="a-like" target="rightFrame" href="${cPath}/user/listUser">회원정보조회</a>
             </td>
           </tr>
         </c:if>
@@ -63,13 +63,13 @@
           <tr>
             <td class="Depth03">
               <!-- 판매상품등록 (뷰 진입 GET) -->
-              <a class="a-like" target="rightFrame" href="${cPath}/addProductView.do">판매상품등록</a>
+              <a class="a-like" target="rightFrame" href="${cPath}/product/addProductView">판매상품등록</a>
             </td>
           </tr>
           <tr>
             <td class="Depth03">
               <!-- 판매상품관리 -->
-              <a class="a-like" target="rightFrame" href="${cPath}/getProductList.do">판매상품관리</a>
+              <a class="a-like" target="rightFrame" href="${cPath}/product/getProductList">판매상품관리</a>
             </td>
           </tr>
           <tr><td class="DepthEnd">&nbsp;</td></tr>
@@ -87,12 +87,12 @@
         <c:if test="${not empty user and user.role eq 'user'}">
           <tr>
             <td class="Depth03">
-              <a class="a-like" target="rightFrame" href="${cPath}/getProductList.do">상 품 검 색</a>
+              <a class="a-like" target="rightFrame" href="${cPath}/product/getProductList">상 품 검 색</a>
             </td>
           </tr>        
           <tr>
             <td class="Depth03">
-              <a class="a-like" target="rightFrame" href="${cPath}/getPurchaseList.do">구매이력조회</a>
+              <a class="a-like" target="rightFrame" href="${cPath}/purchase/getPurchaseList">구매이력조회</a>
             </td>
           </tr>
 	        <tr>
@@ -116,7 +116,7 @@
         <c:if test="${empty user}">
           <tr>
             <td class="Depth03">
-              <a class="a-like" target="rightFrame" href="${cPath}/getProductList.do">상 품 검 색</a>
+              <a class="a-like" target="rightFrame" href="${cPath}/product/getProductList">상 품 검 색</a>
             </td>
           </tr>
 	        <tr>
