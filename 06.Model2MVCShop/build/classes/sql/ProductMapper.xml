@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProductMapper">
+
+    <resultMap id="productSelectMap" type="com.model2.mvc.service.domain.Product">
+        <result property="prodNo"      column="prod_no"      jdbcType="INTEGER"/>
+        <result property="prodName"    column="prod_name"    jdbcType="VARCHAR"/>
+        <result property="price"       column="price"        jdbcType="INTEGER"/>
+        <result property="manuDate"    column="manufacture_day"    jdbcType="VARCHAR"/>
+        <result property="fileName"    column="image_file"    jdbcType="VARCHAR"/>
+        <result property="prodDetail"  column="prod_detail"  jdbcType="VARCHAR"/>
+        <result property="regDate"     column="reg_date"     jdbcType="DATE"/>
+        <!-- from TRANSACTION (latest) -->
+        <result property="proTranCode" column="pro_tran_code" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- Insert -->
+    <insert id="addProduct" parameterType="com.model2.mvc.service.domain.Product">
+        INSERT INTO product
+            (prod_no, prod_name, price, manufacture_day, image_file, prod_detail, reg_date)
+        VALUES
+            (SEQ_PRODUCT_PROD_NO.NEXTVAL, #{prodName}, #{price}, #{manuDate}, #{fileName}, #{prodDetail}, SYSDATE)
+    </insert>
+
+    <!-- Select one with latest tran code (if any) -->
+    <select id="getProduct" parameterType="int" resultMap="productSelectMap">
+        SELECT p.prod_no, p.prod_name, p.price, p.manufacture_day, p.image_file, p.prod_detail, p.reg_date,
+               (SELECT MAX(t.tran_status_code) 
+                  FROM transaction t 
+                 WHERE t.prod_no = p.prod_no) AS pro_tran_code
+          FROM product p
+         WHERE p.prod_no = #{value}
+    </select>
+
+    <!-- Dynamic WHERE for searchCondition/Keyword + pagination by rowNum -->
+    <sql id="where-clause">
+        <where>
+            <if test="searchCondition != null and searchKeyword != null and searchKeyword != ''">
+                <choose>
+					<when test="searchCondition == '0' or searchCondition == 0">
+					  AND LOWER(p.prod_name) LIKE '%' || LOWER(#{searchKeyword}) || '%'
+					</when>
+					<when test="searchCondition == '1' or searchCondition == 1">
+					  AND LOWER(p.price) LIKE '%' || LOWER(#{searchKeyword}) || '%'
+					</when>
+                </choose>
+            </if>
+        </where>
+    </sql>
+    
+    <!-- 가격순 정렬 -->
+    <sql id="order-by-price">
+  <choose>
+    <when test="orderByPriceAsc == 'ASC' or orderByPriceAsc == 'asc'">
+      ORDER BY p.price ASC
+    </when>
+    <when test="orderByPriceAsc == 'DESC' or orderByPriceAsc == 'desc'">
+      ORDER BY p.price DESC
+    </when>
+    <otherwise>
+      ORDER BY p.prod_no DESC   <!-- 기본 정렬(원하면 변경) -->
+    </otherwise>
+  </choose>
+</sql>
+
+    <!-- List with pagination -->
+    <select id="getProductList" parameterType="com.model2.mvc.common.Search" resultMap="productSelectMap">
+        SELECT * FROM (
+            SELECT inner_table.*, ROWNUM AS rNum FROM (
+                SELECT p.prod_no, p.prod_name, p.price, p.manufacture_day, p.image_file, p.prod_detail, p.reg_date,
+			        NVL((
+			          SELECT MAX(TO_NUMBER(t.tran_status_code))
+			            FROM transaction t
+			           WHERE t.prod_no = p.prod_no
+			        ), 0) AS pro_tran_code
+                  FROM product p
+                <include refid="where-clause"/>
+                <include refid="order-by-price"/>
+            ) inner_table
+            WHERE ROWNUM &lt;= #{endRowNum}
+        )
+        WHERE rNum &gt;= #{startRowNum}
+    </select>
+
+    <select id="getTotalCount" parameterType="com.model2.mvc.common.Search" resultType="int">
+        SELECT COUNT(*)
+          FROM product p
+        <include refid="where-clause"/>
+    </select>
+
+    <!-- Update -->
+    <update id="updateProduct" parameterType="com.model2.mvc.service.domain.Product">
+        UPDATE product
+           SET prod_name = #{prodName},
+               price     = #{price},
+               manufacture_day = #{manuDate},
+               image_file = #{fileName},
+               prod_detail = #{prodDetail}
+         WHERE prod_no = #{prodNo}
+    </update>
+
+</mapper>

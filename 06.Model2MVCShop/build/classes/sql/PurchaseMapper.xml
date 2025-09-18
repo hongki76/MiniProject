@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PurchaseMapper">
+
+<resultMap id="purchaseSelectMap" type="com.model2.mvc.service.domain.Purchase">
+  <id property="tranNo" column="tran_no" jdbcType="NUMERIC"/>
+
+  <result property="paymentOption" column="payment_option" jdbcType="CHAR"/>
+  <result property="dlvyRequest"   column="dlvy_request"   jdbcType="VARCHAR"/>
+  <result property="tranCode"      column="tran_status_code" jdbcType="CHAR"/>
+  <result property="orderDate"     column="order_data"     jdbcType="TIMESTAMP"/>
+  <result property="dlvyDate"      column="dlvy_date"      jdbcType="TIMESTAMP"/>
+
+  <association property="purchaseProd" javaType="com.model2.mvc.service.domain.Product">
+    <id     property="prodNo"        column="prod_no" />
+    <result property="prodName"      column="prod_name"/>
+    <result property="prodDetail"    column="prod_detail"/>
+    <result property="price"         column="price"/>
+    <result property="fileName"     column="image_file"/>
+    <result property="manuDate" column="manufacture_day"/>
+    <result property="regDate"       column="prod_reg_date"/>
+  </association>
+
+  <association property="buyer" javaType="com.model2.mvc.service.domain.User">
+    <id property="userId" column="buyer_id"/>
+  </association>
+</resultMap>
+
+  <!-- INSERT : 시퀀스 직접 사용 -->
+<insert id="addPurchase" parameterType="com.model2.mvc.service.domain.Purchase">
+  INSERT INTO TRANSACTION
+    (tran_no, prod_no, buyer_id, payment_option,
+     receiver_name, receiver_phone, demailaddr, dlvy_request,
+     tran_status_code, order_data, dlvy_date)
+  VALUES
+    (seq_transaction_tran_no.NEXTVAL,
+     #{purchaseProd.prodNo, jdbcType=NUMERIC},
+     #{buyer.userId,       jdbcType=VARCHAR},
+     #{paymentOption,      jdbcType=CHAR},
+     #{receiverName,       jdbcType=VARCHAR},
+     #{receiverPhone,      jdbcType=VARCHAR},
+     #{receiverEmail,           jdbcType=VARCHAR},
+     #{dlvyRequest,        jdbcType=VARCHAR},
+     #{tranCode,           jdbcType=CHAR},
+     SYSDATE,
+     <choose>
+       <when test="dlvyDate != null and dlvyDate != ''">
+         TO_DATE(#{dlvyDate, jdbcType=VARCHAR}, 'YYYY-MM-DD')
+       </when>
+       <otherwise>NULL</otherwise>
+     </choose>
+    )
+</insert>
+
+  <!-- 단건 조회 : 파라미터 int => #{value} -->
+  <select id="getPurchase" parameterType="int" resultMap="purchaseSelectMap">
+    SELECT
+      t.tran_no          "tran_no",
+      t.prod_no          "prod_no",
+      t.buyer_id         "buyer_id",
+      t.payment_option   "payment_option",
+      t.receiver_name    "receiver_name",
+      t.receiver_phone   "receiver_phone",
+      t.demailaddr       "demailaddr",
+      t.dlvy_request     "dlvy_request",
+      t.tran_status_code "tran_status_code",
+      t.order_data       "order_data",
+      t.dlvy_date        "dlvy_date"
+    FROM transaction t
+    WHERE t.tran_no = #{value}
+  </select>
+
+  <!-- 구매자별 목록(ROWNUM 페이징) : parameterType=map (buyerId, search) -->
+<select id="getPurchaseList" parameterType="map" resultMap="purchaseSelectMap">
+  SELECT * FROM (
+    SELECT inner_tbl.*, ROWNUM rnum
+    FROM (
+      SELECT
+        t.tran_no           AS "tran_no",
+        t.prod_no           AS "prod_no",
+        t.buyer_id          AS "buyer_id",
+        RTrim(t.payment_option) AS "payment_option",
+        t.receiver_name     AS "receiver_name",
+        t.receiver_phone    AS "receiver_phone",
+        t.demailaddr        AS "demailaddr",
+        t.dlvy_request      AS "dlvy_request",
+        RTrim(t.tran_status_code)  AS "tran_status_code",
+        t.order_data        AS "order_date",
+        t.dlvy_date         AS "dlvy_date",
+        -- 상품 정보
+        p.prod_name         AS "prod_name",
+        p.price             AS "price",
+        p.prod_detail       AS "prod_detail",
+        p.image_file        AS "image_file",
+        p.manufacture_day   AS "manufacture_day",
+        p.reg_date          AS "prod_reg_date"
+      FROM transaction t
+      JOIN product p ON p.prod_no = t.prod_no
+      WHERE t.buyer_id = #{buyerId}
+      ORDER BY t.tran_no DESC
+    ) inner_tbl
+    WHERE ROWNUM &lt;= #{search.endRowNum}
+  )
+  WHERE rnum &gt;= #{search.startRowNum}
+</select>
+
+  <!-- 카운트 : 파라미터 string => #{value} -->
+  <select id="getTotalCount" parameterType="string" resultType="int">
+    SELECT COUNT(*)
+    FROM transaction t
+    WHERE t.buyer_id = #{value}
+  </select>
+
+  <!-- 상품별 최신 거래상태코드 조회 : 파라미터 int => #{value} -->
+  <select id="getTranCode" parameterType="int" resultType="string">
+    SELECT MAX(t.tran_status_code)
+    FROM transaction t
+    WHERE t.prod_no = #{value}
+  </select>
+
+  <!-- 구매목록 - 거래상태코드 변경 : parameterType=map(prodNo, tranStatusCode) -->
+  <update id="updateTranCode" parameterType="map">
+    UPDATE transaction
+       SET tran_status_code = #{tranStatusCode}
+     WHERE tran_no = #{tranNo, jdbcType=NUMERIC}
+  </update>
+  
+    <!-- 상품목록 - 거래상태코드 변경 : parameterType=map(prodNo, tranStatusCode) -->
+  <update id="updateTranCodeByProduct" parameterType="map">
+    UPDATE transaction
+       SET tran_status_code = '2'
+     WHERE prod_no = 10097
+  </update>
+
+</mapper>
