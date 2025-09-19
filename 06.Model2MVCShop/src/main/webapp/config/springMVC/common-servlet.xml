@@ -79,8 +79,8 @@
 	<mvc:resources mapping="/css/**" location="/css/" />
    	<mvc:resources mapping="/images/**" location="/images/" />
    	<mvc:resources mapping="/javascript/**" location="/javascript/" />
+	<mvc:resources mapping="/upload/**" location="/upload/"/> <!-- 정적리소스/업로드 접근 -->
 	<!-- //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
-   	
 
 	<!-- 	:: exception resolver  선언 :: 서술적 / 선언적 예외처리 
 			:: Servlet 에서의 선언적 예외처리를 다시 생각하며....  -->
@@ -97,5 +97,9 @@
 		<property name="defaultErrorView"	value="/common/error.jsp" />
 		
 	</bean>
+	
+	<!-- 파일 업로드 -->
+	 <bean id="multipartResolver"
+	       class="org.springframework.web.multipart.support.StandardServletMultipartResolver"/>	
 	
 </beans>

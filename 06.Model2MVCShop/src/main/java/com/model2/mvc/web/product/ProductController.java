@@ -1,11 +1,13 @@
 package com.model2.mvc.web.product;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.model2.mvc.common.Page;
 import com.model2.mvc.common.Search;
@@ -46,16 +49,38 @@ public class ProductController {
     // ====== Create ======
 	@RequestMapping(value = "addProduct", method = RequestMethod.GET)
 	public String addProduct() {
+		System.out.println("ProductController.addProduct() - GET");
 	    return "/product/addProductView.jsp";
 	}
 
     @RequestMapping(value = "addProduct", method = RequestMethod.POST)
-    public String addProduct(@ModelAttribute("product") Product product) throws Exception {
-    	System.out.println("ProductController.addProduct() - POST");
+    public String addProduct(@ModelAttribute Product product, @RequestParam(value="fileName", required=false) MultipartFile file,
+            HttpServletRequest request) throws Exception {
+    	System.out.println("ProductController.addProduct() - GET");
     	
-    	productService.addProduct(product);
-        return "redirect:/product/getProductList";
-    }
+		// 1) 업로드 경로
+		String uploadDir = request.getServletContext().getRealPath("/upload"); // 또는 외부 경로
+		File dir = new File(uploadDir);
+		if (!dir.exists()) dir.mkdirs();
+		
+		// 2) 파일 저장
+		if (file != null && !file.isEmpty()) {
+		String original = file.getOriginalFilename();
+		String ext = (original != null && original.lastIndexOf(".") != -1)
+		           ? original.substring(original.lastIndexOf("."))
+		           : "";
+		String savedName = java.util.UUID.randomUUID().toString().replace("-", "") + ext;
+		
+		file.transferTo(new File(dir, savedName));   // 실제 저장
+		product.setFileName(savedName);             // DB엔 파일명만 저장
+		} else {
+		product.setFileName(null); // 또는 "noimg.png"
+		}
+		
+		// 3) 나머지는 서비스로
+		productService.addProduct(product);
+		return "redirect:/product/getProductList";
+}
 
     // ====== Read ======
     @RequestMapping(value = "/getProduct", method = RequestMethod.POST)

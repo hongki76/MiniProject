@@ -50,11 +50,19 @@
 		      <param-value>/config/springMVC/common-servlet.xml</param-value>
 		      <!-- Servlet Meta-data / Spring Meta-data 위치 분리함 -->
 		    </init-param>
-		    
+
+			<!-- Server Preloading -->		    
 		    <load-on-startup>1</load-on-startup>
+
+			<!-- File Upload -->		    
+			<multipart-config>
+				<max-file-size>10485760</max-file-size>      <!-- 10MB -->
+				<max-request-size>20971520</max-request-size><!-- 20MB -->
+				<file-size-threshold>0</file-size-threshold>
+			</multipart-config>
   </servlet>
   
-    <!-- 확장자가 ~.do 경우 Servlet Mapping ::  -->
+    <!-- Servlet Mapping ::  *.do -> / -->
 	  <servlet-mapping>
 	    <servlet-name>action</servlet-name>
 	    <url-pattern>/</url-pattern>

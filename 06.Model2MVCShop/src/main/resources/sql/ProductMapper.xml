@@ -98,6 +98,6 @@
                image_file = #{fileName},
                prod_detail = #{prodDetail}
          WHERE prod_no = #{prodNo}
-    </update>
+    </update>        
 
 </mapper>

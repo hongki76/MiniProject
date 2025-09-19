@@ -69,14 +69,21 @@ a:clicked   {font-size: 9pt; color: #000000; text-decoration: none; font-family:
 
 /*입력폼*/
 .ct_input      {font-size:9pt; border:1x solid #468720; color:#777777; background-color:#ffffff; font-family:"돋움", "굴림"; padding-top:2px}
-.ct_input_g    {font-size:9pt; border:1x solid #ADAEAD; color:#777777; background-color:#ffffff; font-family:"돋움", "굴림"; padding-top:2px}
+.ct_input_g    {font-size:9pt; border:1x solid #ADAEAD; color:#777777; background-color:#ffffff; font-family:"돋움", "굴림"; padding-top:2px; height: 28px; line-height: 28px; padding: 0 8px;
+    box-sizing: border-box;}
 .ct_input_bg    {font-size:9pt; border:1x solid #ADAEAD; color:#777777; background-color:#dddddd; font-family:"돋움", "굴림"; padding-top:2px}
 
 select {border:1x solid #ADAEAD; color:#777777; background-color:#ffffff; font-family:돋움; font-size:12px; color:#5D5D5D; line-height:1.3;}
 
-.ct_write          {font-size: 9pt; color: #181818; font-family:"돋움", "굴림"; padding:3px 0px 0px 10px; background-color:#F5F5F5; height:26px;}
-.ct_write01        {font-size: 9pt; color: #565656; font-family:"돋움", "굴림"; padding:3px 0px 3px 4px;}
+.ct_write          {font-size: 9pt; color: #181818; font-family:"돋움", "굴림"; padding:3px 0px 0px 10px; background-color:#F5F5F5; height:26px; padding: 8px 10px; vertical-align: middle;}
+.ct_write01        {font-size: 9pt; color: #565656; font-family:"돋움", "굴림"; padding:3px 0px 3px 4px; padding: 8px 10px; vertical-align: middle;}
 
+input[type="file"].ct_input_g {
+  height: auto; line-height: normal; padding: 4px 8px; /* 살짝 여백 */
+  max-width: 280px; /* 넓이 제한 (원하면 조정) */
+}
+
+tr + tr > td.ct_write01 { padding-top: 10px; padding-bottom: 10px; }
 
 /* 게시판 */ 
 .ct_line02 {width:1px; background-color:#ffffff}
