@@ -25,13 +25,14 @@ import com.model2.mvc.service.product.ProductService;
 import com.model2.mvc.service.purchase.PurchaseService;
 
 @Controller
+@RequestMapping("/purchase/*")
 public class PurchaseController {
 
     // ===== Config =====
-    @Value("#{commonProperties['pageUnit'] ?: 5}")
+    @Value("#{commonProperties['pageUnit']}")
     int pageUnit;
 
-    @Value("#{commonProperties['pageSize'] ?: 3}")
+    @Value("#{commonProperties['pageSize']}")
     int pageSize;
 
     // ===== Service =====
@@ -43,11 +44,9 @@ public class PurchaseController {
     @Qualifier("productServiceImpl")
     private ProductService productService;
 
-    // ------------------------------------------------------
-    // 1-1) 구매 등록 View
-    // ------------------------------------------------------
-    @RequestMapping(value = "/addPurchaseView.do", method = { RequestMethod.GET, RequestMethod.POST })
-    public ModelAndView addPurchaseView(@RequestParam("prodNo") int prodNo) throws Exception {
+    // 구매 등록 View
+    @RequestMapping(value = "addPurchase", method = RequestMethod.GET)
+    public ModelAndView addPurchase(@RequestParam("prodNo") int prodNo) throws Exception {
         Product product = productService.getProduct(prodNo);
 
         ModelAndView mav = new ModelAndView();
@@ -57,10 +56,8 @@ public class PurchaseController {
     }
 
     
-    // ------------------------------------------------------
-    // 1-2) 구매 등록
-    // ------------------------------------------------------
-    @RequestMapping(value = "/addPurchase.do", method = RequestMethod.POST)
+    // 구매 등록
+    @RequestMapping(value = "addPurchase", method = RequestMethod.POST)
     public ModelAndView addPurchase(
             @ModelAttribute("purchase") Purchase purchase,
             @RequestParam("prodNo") int prodNo,
@@ -88,10 +85,8 @@ public class PurchaseController {
         return mav;
     }
 
-    // ------------------------------------------------------
-    // 2) 구매 상세
-    // ------------------------------------------------------
-    @RequestMapping(value = "/getPurchase.do", method = { RequestMethod.GET, RequestMethod.POST })
+    // 구매 상세
+    @RequestMapping(value = "getPurchase", method = { RequestMethod.GET, RequestMethod.POST })
     public ModelAndView getPurchase(
             @RequestParam("tranNo") int tranNo,
             HttpSession session) throws Exception {
@@ -108,10 +103,8 @@ public class PurchaseController {
         return mav;
     }
 
-    // ------------------------------------------------------
-    // 3) (구매자 기준) 구매 목록
-    // ------------------------------------------------------
-    @RequestMapping(value = "/getPurchaseList.do", method = { RequestMethod.GET, RequestMethod.POST })
+    // 구매 목록(구매자 기준)
+    @RequestMapping(value = "getPurchaseList", method = { RequestMethod.GET, RequestMethod.POST })
     public ModelAndView getPurchaseList(
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage,
             HttpSession session) throws Exception {
@@ -160,74 +153,38 @@ public class PurchaseController {
         return mav;
     }
     
-    // ------------------------------------------------------
-    // 4-1) 상품별 상태코드 변경 - 구매목록
-    // ------------------------------------------------------
-    @RequestMapping(value = "/updateTranCode.do", method = { RequestMethod.GET, RequestMethod.POST })
+    // 상품별 상태코드 변경 - 구매목록
+    @RequestMapping(value = "updateTranCode", method = { RequestMethod.GET, RequestMethod.POST })
     public ModelAndView updateTranCode(
             @RequestParam("tranNo") int tranNo,
             @RequestParam("tranStatusCode") String tranStatusCode,
             HttpSession session) throws Exception {
 
-    	System.out.println("### PurchaseController.updateTranCode() - tranNo(" + tranNo + "), tranStatusCode(" + tranStatusCode + ")");
         purchaseService.updateTranCode(tranNo, tranStatusCode);
 
         ModelAndView mav = new ModelAndView();
-        mav.setViewName("redirect:/getPurchaseList.do");
+        mav.setViewName("redirect:/purchase/getPurchaseList");
         return mav;
     }
 
-    // ------------------------------------------------------
-    // 4-2) 상품별 상태코드 변경 - 상품목록
-    // ------------------------------------------------------
-    @RequestMapping(value = "/updateTranCodeByProduct.do", method = { RequestMethod.GET, RequestMethod.POST })
+    // 상품별 상태코드 변경 - 상품목록
+    @RequestMapping(value = "updateTranCodeByProduct", method = { RequestMethod.GET, RequestMethod.POST })
     public ModelAndView updateTranCodeByProduct(
             @RequestParam("prodNo") int prodNo,
             @RequestParam("tranStatusCode") String tranStatusCode,
             HttpSession session) throws Exception {
 
-    	System.out.println("### PurchaseController.updateTranCodeByProduct() - prodNo(" + prodNo + "), tranStatusCode(" + tranStatusCode + ")");
-        purchaseService.updateTranCodeByProduct(prodNo, tranStatusCode);
+    	System.out.println("##### [Debug] PurchaseController.updateTranCodeByProduct() - prodNo(" + prodNo + "), tranStatusCode(" + tranStatusCode + ")");
+    	
+        int rows = purchaseService.updateTranCodeByProduct(prodNo, tranStatusCode);
+        System.out.println("### updateTranCodeByProduct rows = " + rows);
 
         ModelAndView mav = new ModelAndView();
-        mav.setViewName("redirect:/getProductList.do");
+        mav.setViewName("redirect:/product/getProductList");
         return mav;
     }
 
-    // ------------------------------------------------------
-    // 5) 상품별 현재 상태코드 조회 
-    // ------------------------------------------------------
-    @RequestMapping(value = "/getTranCodeByProd.do", method = { RequestMethod.GET, RequestMethod.POST })
-    public ModelAndView getTranCode(
-            @RequestParam("prodNo") int prodNo,
-            HttpSession session) throws Exception {
-
-        String codeStr = purchaseService.getTranCode(prodNo);
-        int code = toIntSafe(codeStr);
-
-        Map<String, Object> res = new HashMap<>();
-        res.put("prodNo", prodNo);
-        res.put("tranStatusCode", codeStr != null ? codeStr : "0");
-        res.put("tranState", resolveTranState(session, code));
-
-        ModelAndView mav = new ModelAndView();
-
-        // (A) jsonView 사용 시
-        // mav.setViewName("jsonView");
-        // mav.addAllObjects(res);
-
-        // (B) JSP 로 JSON 렌더링 시
-        mav.setViewName("/common/jsonView.jsp");
-        mav.addObject("json", res);
-
-        return mav;
-    }
-
-    /**
-     * 거래상태 헬퍼
-     * @param session     현재 세션(없어도 동작)
-     * @param proTranCode 0:판매중, 1:구매완료, 2:배송중, 3:배송완료
-     */
+    // 헬퍼
     private String resolveTranState(HttpSession session, int tranCode) {
             switch (tranCode) {
                 case 2:  return "배송중";

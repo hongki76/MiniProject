@@ -148,11 +148,8 @@ function fncGetList(currentPage, orderByPriceAsc){
         <c:choose>
           <c:when test="${not empty user and user.role eq 'admin' and product.proTranCode eq '1'}">
             ${product.proTranState}
-            <form action="/purchase/updateTranCodeByProduct" method="post" style="display:inline;">
-              <input type="hidden" name="prodNo" value="${product.prodNo}" />
-              <input type="hidden" name="tranStatusCode" value="2" />
-              <button type="submit" class="a-like">배송하기</button>
-            </form>
+				<a href="/purchase/updateTranCodeByProduct?prodNo=${product.prodNo}&amp;tranStatusCode=2"
+				   class="a-like">배송하기</a>
           </c:when>
           <c:otherwise>
             ${product.proTranState}

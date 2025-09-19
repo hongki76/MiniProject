@@ -5,6 +5,7 @@
 <c:set var="cPath" value="${pageContext.request.contextPath}" />
 <c:set var="proTranCode" value="${fn:trim(product.proTranCode)}" />
 <c:set var="user" value="${sessionScope.user}" />
+<c:set var="buyable" value="${empty proTranCode or proTranCode eq '0'}"/>
 
 <html>
 <head>
@@ -103,6 +104,7 @@
       <table border="0" cellspacing="0" cellpadding="0">
         <tr>
           <td width="50" height="23">
+          
 			<c:choose>
 			  <c:when test="${not empty user and user.role eq 'admin'}">
 			    <form action="${cPath}/product/updateProduct" method="post" style="display:inline;">
@@ -112,16 +114,14 @@
 			  </c:when>
 			
 			  <c:otherwise>
-			    <form action="${cPath}/parchase/addPurchase" method="post" style="display:inline;">
-			      <input type="hidden" name="prodNo" value="${product.prodNo}" />
-			      <button type="submit"
-			              class="${proTranCode eq '0' or empty proTranCode ? 'txt-link' : 'txt-disabled'}"
-			              ${proTranCode ne '0' and not empty proTranCode ? 'disabled' : ''}>
-			        구매
-			      </button>
-			    </form>
+				<a href="${cPath}/purchase/addPurchase?prodNo=${product.prodNo}"
+				   class="${buyable ? 'txt-link' : 'txt-disabled'}"
+				   <c:if test="${not buyable}">aria-disabled="true" onclick="return false;"</c:if>>
+				  구매
+				</a>
 			  </c:otherwise>
 			</c:choose>
+			
           </td>
           <td width="30" height="23">
             <a href="javascript:history.go(-1)">이전</a>

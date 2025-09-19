@@ -51,13 +51,13 @@ public class PurchaseDaoImpl implements PurchaseDao {
         sqlSession.update("PurchaseMapper.updateTranCode", map);
     }
     
-    @Override
-    public void updateTranCodeByProduct(int prodNo, String tranStatusCode) throws Exception {
-        Map<String,Object> map = new HashMap<>();
-        map.put("prodNo", prodNo);
-        map.put("tranStatusCode", tranStatusCode);
-        sqlSession.update("PurchaseMapper.updateTranCodeByProduct", map);
-    }
+	    @Override
+	    public int updateTranCodeByProduct(int prodNo, String tranStatusCode) throws Exception {
+	        Map<String,Object> map = new HashMap<>();
+	        map.put("prodNo", prodNo);
+	        map.put("tranStatusCode", tranStatusCode);
+	        return sqlSession.update("PurchaseMapper.updateTranCodeByProduct", map);
+	    }
 
     @Override
     public String getTranCode(int prodNo) throws Exception {

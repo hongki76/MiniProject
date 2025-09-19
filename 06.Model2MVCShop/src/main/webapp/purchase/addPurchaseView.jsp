@@ -15,7 +15,7 @@
 
 <body>
 
-<form name="addPurchase" method="post" action="/addPurchase.do">
+<form name="addPurchase" method="post" action="/purchase/addPurchase">
 
   <!-- 히든값 -->
   <input type="hidden" name="prodNo"  value="${product.prodNo}" />

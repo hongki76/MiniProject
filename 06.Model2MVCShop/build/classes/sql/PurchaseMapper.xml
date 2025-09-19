@@ -130,8 +130,8 @@
     <!-- 상품목록 - 거래상태코드 변경 : parameterType=map(prodNo, tranStatusCode) -->
   <update id="updateTranCodeByProduct" parameterType="map">
     UPDATE transaction
-       SET tran_status_code = '2'
-     WHERE prod_no = 10097
+       SET tran_status_code = #{tranStatusCode}
+     WHERE prod_no = #{prodNo, jdbcType=NUMERIC}
   </update>
 
 </mapper>

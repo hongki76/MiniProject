@@ -45,8 +45,8 @@ public class PurchaseServiceImpl implements PurchaseService {
     }
     
     @Override
-    public void updateTranCodeByProduct(int prodNo, String tranStatusCode) throws Exception {
-        purchaseDao.updateTranCodeByProduct(prodNo, tranStatusCode);
+    public int updateTranCodeByProduct(int prodNo, String tranStatusCode) throws Exception {
+        return purchaseDao.updateTranCodeByProduct(prodNo, tranStatusCode);
     }
 
     @Override

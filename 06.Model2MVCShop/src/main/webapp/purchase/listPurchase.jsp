@@ -8,9 +8,11 @@
 <title>구매 목록조회</title>
 <link rel="stylesheet" href="/css/admin.css" type="text/css">
 <script type="text/javascript">
-  function fncMove(page){ location.href = "/getPurchaseList.do?page="+page; }
-  
   <!--
+  	function fncMove(page) { 
+	  location.href = "/purchase/getPurchaseList?page="+page; 
+	}  
+  
 	// 검색 / page 두가지 경우 모두 Form 전송을 위해 JavaScrpt 이용  
 	function fncGetList(currentPage) {
 		document.getElementById("currentPage").value = currentPage;
@@ -23,7 +25,7 @@
 <body bgcolor="#ffffff" text="#000000">
 <div style="width: 98%; margin-left: 10px;">
 
-<form name="detailForm" action="/listPurchase.do" method="post">
+<form name="detailForm" action="/purchase/getPurchaseList" method="post">
 
 <table width="100%" height="37" border="0" cellpadding="0" cellspacing="0">
   <tr>
@@ -70,18 +72,18 @@
           </td>
           <td></td>
           <td align="left">
-              <a href="/getPurchase.do?tranNo=${purchase.tranNo}">${purchase.purchaseProd.prodName}</a>
+              <a href="/purchase/getPurchase?tranNo=${purchase.tranNo}">${purchase.purchaseProd.prodName}</a>
           </td>
           <td></td>
           <td align="left"><c:out value="${purchase.purchaseProd.prodDetail}" default=""/>${purchase.purchaseProd.prodDetail}</td>
           <td></td>
           <td align="left"><c:out value="${purchase.purchaseProd.price}" default=""/></td>
           <td></td>
-          <td align="left">현재 ${tranStateMap[purchase.tranNo]} 상태 입니다.</td>
+          <td align="left">현재 ${tranStateMap[purchase.tranNo]} 상태입니다.</td>
           <td></td>
           <td align="left">
             <c:if test="${tranStateMap[purchase.tranNo] eq '배송중'}">
-              <a href="/updateTranCode.do?tranNo=${purchase.tranNo}&amp;tranStatusCode=3">물건도착</a>
+              <a href="/purchase/updateTranCode?tranNo=${purchase.tranNo}&amp;tranStatusCode=3">물건도착</a>
             </c:if>
           </td>
         </tr>

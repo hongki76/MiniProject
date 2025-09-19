@@ -12,7 +12,7 @@
 
 <body bgcolor="#ffffff" text="#000000">
 
-<form name="updatePurchase" method="post" action="/updatePurchase.do">
+<form name="updatePurchase" method="post" action="/purchase/updatePurchase">
   <input type="hidden" name="tranNo"   value="${purchase.tranNo}">
   <input type="hidden" name="buyerId"  value="${purchase.buyer.userId}">
 
@@ -154,7 +154,7 @@
             </td>
             <td width="10"></td>
             <td class="ct_btn01" style="padding:3px 8px; border:1px solid #ccc; background:#f5f5f5; cursor:pointer;">
-              <a href="/getPurchase.do?tranNo=${purchase.tranNo}" style="text-decoration:none; color:inherit;">취소</a>
+              <a href="/purchase/getPurchase?tranNo=${purchase.tranNo}" style="text-decoration:none; color:inherit;">취소</a>
             </td>
           </tr>
         </table>

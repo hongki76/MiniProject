@@ -16,7 +16,7 @@ public interface PurchaseDao {
 
     void updateTranCode(int tranNo, String tranStatusCode) throws Exception;
     
-    void updateTranCodeByProduct(int prodNo, String tranStatusCode) throws Exception;
+    int updateTranCodeByProduct(int prodNo, String tranStatusCode) throws Exception;
     
     String getTranCode(int prodNo) throws Exception;
 }
