@@ -36,7 +36,7 @@ function fncAddProduct(){
 </script>
 </head>
 
-<form name="detailForm" action="${cPath}/product/updateProduct" method="post" style="display:inline;">
+<form name="detailForm" action="${cPath}/product/updateProduct" method="post" style="display:inline;" enctype="multipart/form-data">
   <input type="hidden" name="prodNo" value="${product.prodNo}"/>
 
   <!-- 상단 타이틀 -->
@@ -100,7 +100,7 @@ function fncAddProduct(){
       <td class="ct_write">상품이미지</td>
       <td bgcolor="D6D6D6" width="1"></td>
       <td class="ct_write01">
-        <input type="text" name="fileName" class="ct_input_g" style="width: 300px; height: 19px" maxlength="100" value="${product.fileName}"/>
+        <input type="text" name="oldFileName" size="50" value="${product.fileName}">&nbsp;<input type="file" name="uploadFile" class="ct_input_g" style="width: 300px;" maxlength="100" value="${product.fileName}"/>
       </td>
     </tr>
     <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
