@@ -118,6 +118,8 @@ public class PurchaseController {
         Search search = new Search();
         search.setCurrentPage(currentPage);
         search.setPageSize(pageSize);
+        
+        System.out.println("### PurchaseController.getPurchaseList() - search.StartRownNum(" + search.getStartRowNum() + ")");
 
         // 서비스에서 Map(list,totalCount) 반환
         Map<String, Object> map = purchaseService.getPurchaseList(search, buyerId);

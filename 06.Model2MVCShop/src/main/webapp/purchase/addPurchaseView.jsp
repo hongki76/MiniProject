@@ -148,7 +148,7 @@
       <td class="ct_write01">
         <input type="text" name="dlvyDate" class="ct_input_g" style="width:100px;">
         <img src="../images/ct_icon_date.gif" width="15" height="15"
-             onclick="show_calendar('document.addPurchase.dlvyDate', document.addPurchase.dlvyDate.value)" />
+             onclick="show_calendar('document.addPurchase.dlvyDate', document.addPurchase.dlvyDate.value.replace(/-/g,''))" />
       </td>
     </tr>
     <tr><td colspan="3" bgcolor="#D6D6D6" height="1"></td></tr>

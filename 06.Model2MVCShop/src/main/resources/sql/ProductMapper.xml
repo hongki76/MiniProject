@@ -16,12 +16,21 @@
     </resultMap>
 
     <!-- Insert -->
-    <insert id="addProduct" parameterType="com.model2.mvc.service.domain.Product">
-        INSERT INTO product
-            (prod_no, prod_name, price, manufacture_day, image_file, prod_detail, reg_date)
-        VALUES
-            (SEQ_PRODUCT_PROD_NO.NEXTVAL, #{prodName}, #{price}, #{manuDate}, #{fileName}, #{prodDetail}, SYSDATE)
-    </insert>
+<insert id="addProduct" parameterType="com.model2.mvc.service.domain.Product">
+  INSERT INTO product
+    (prod_no, prod_name, price, manufacture_day, image_file, prod_detail, reg_date)
+  VALUES
+    (
+      SEQ_PRODUCT_PROD_NO.NEXTVAL,
+      #{prodName},
+      #{price},
+      TO_DATE(#{manuDate, jdbcType=VARCHAR}, 'YYYYMMDD'),
+      #{fileName, jdbcType=VARCHAR},   <!-- ✅ NULL 안전 -->
+      #{prodDetail},
+      SYSDATE
+    )
+</insert>
+
 
     <!-- Select one with latest tran code (if any) -->
     <select id="getProduct" parameterType="int" resultMap="productSelectMap">

@@ -31,6 +31,10 @@ public class PurchaseServiceImpl implements PurchaseService {
 
     @Override
     public HashMap<String, Object> getPurchaseList(Search search, String buyerId) throws Exception {
+    	System.out.println("### PurchaseServiceImpl.getPurchaseList() - search.StartRownNum(" + search.getStartRowNum() + ")");
+    	System.out.println("### PurchaseServiceImpl.getPurchaseList() - search.EndRowNum(" + search.getEndRowNum() + ")");
+    	System.out.println("### PurchaseServiceImpl.getPurchaseList() - buyerId(" + buyerId + ")");
+    	
         List<Purchase> list = purchaseDao.getPurchaseList(search, buyerId);
         int totalCount = purchaseDao.getTotalCount(buyerId);
         HashMap<String,Object> map = new HashMap<>();

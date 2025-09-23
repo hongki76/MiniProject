@@ -10,7 +10,7 @@
   <result property="paymentOption" column="payment_option" jdbcType="CHAR"/>
   <result property="dlvyRequest"   column="dlvy_request"   jdbcType="VARCHAR"/>
   <result property="tranCode"      column="tran_status_code" jdbcType="CHAR"/>
-  <result property="orderDate"     column="order_data"     jdbcType="TIMESTAMP"/>
+  <result property="orderDate"     column="order_date"     jdbcType="TIMESTAMP"/>
   <result property="dlvyDate"      column="dlvy_date"      jdbcType="TIMESTAMP"/>
 
   <association property="purchaseProd" javaType="com.model2.mvc.service.domain.Product">
@@ -33,7 +33,7 @@
   INSERT INTO TRANSACTION
     (tran_no, prod_no, buyer_id, payment_option,
      receiver_name, receiver_phone, demailaddr, dlvy_request,
-     tran_status_code, order_data, dlvy_date)
+     tran_status_code, order_date, dlvy_date)
   VALUES
     (seq_transaction_tran_no.NEXTVAL,
      #{purchaseProd.prodNo, jdbcType=NUMERIC},
@@ -66,45 +66,47 @@
       t.demailaddr       "demailaddr",
       t.dlvy_request     "dlvy_request",
       t.tran_status_code "tran_status_code",
-      t.order_data       "order_data",
+      t.order_date       "order_date",
       t.dlvy_date        "dlvy_date"
     FROM transaction t
     WHERE t.tran_no = #{value}
   </select>
 
-  <!-- 구매자별 목록(ROWNUM 페이징) : parameterType=map (buyerId, search) -->
-<select id="getPurchaseList" parameterType="map" resultMap="purchaseSelectMap">
-  SELECT * FROM (
-    SELECT inner_tbl.*, ROWNUM rnum
+<!-- 두 파라미터(@Param): search, buyerId -->
+<select id="getPurchaseList" resultMap="purchaseSelectMap">
+  SELECT *
+  FROM (
+    SELECT inner_tbl.*, ROWNUM AS rnum
     FROM (
       SELECT
-        t.tran_no           AS "tran_no",
-        t.prod_no           AS "prod_no",
-        t.buyer_id          AS "buyer_id",
-        RTrim(t.payment_option) AS "payment_option",
-        t.receiver_name     AS "receiver_name",
-        t.receiver_phone    AS "receiver_phone",
-        t.demailaddr        AS "demailaddr",
-        t.dlvy_request      AS "dlvy_request",
-        RTrim(t.tran_status_code)  AS "tran_status_code",
-        t.order_data        AS "order_date",
-        t.dlvy_date         AS "dlvy_date",
-        -- 상품 정보
-        p.prod_name         AS "prod_name",
-        p.price             AS "price",
-        p.prod_detail       AS "prod_detail",
-        p.image_file        AS "image_file",
-        p.manufacture_day   AS "manufacture_day",
-        p.reg_date          AS "prod_reg_date"
+        t.tran_no,
+        t.prod_no,
+        t.buyer_id,
+        RTRIM(t.payment_option)   AS payment_option,
+        t.receiver_name,
+        t.receiver_phone,
+        t.demailaddr,
+        t.dlvy_request,
+        RTRIM(t.tran_status_code) AS tran_status_code,
+        t.order_date,
+        t.dlvy_date,
+        p.prod_name,
+        p.price,
+        p.prod_detail,
+        p.image_file,
+        p.manufacture_day,
+        p.reg_date AS prod_reg_date
       FROM transaction t
       JOIN product p ON p.prod_no = t.prod_no
       WHERE t.buyer_id = #{buyerId}
       ORDER BY t.tran_no DESC
     ) inner_tbl
-    WHERE ROWNUM &lt;= #{search.endRowNum}
+    WHERE ROWNUM <![CDATA[ <= ]]> #{search.endRowNum, jdbcType=NUMERIC}
   )
-  WHERE rnum &gt;= #{search.startRowNum}
+  WHERE rnum <![CDATA[ >= ]]> #{search.startRowNum, jdbcType=NUMERIC}
 </select>
+
+
 
   <!-- 카운트 : 파라미터 string => #{value} -->
   <select id="getTotalCount" parameterType="string" resultType="int">
