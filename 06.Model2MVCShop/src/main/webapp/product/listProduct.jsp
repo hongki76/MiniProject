@@ -167,7 +167,6 @@ function fncGetList(currentPage, orderByPriceAsc){
 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:10px;">
   <tr>
     <td align="center">
-      <!-- pageNavigator.jsp 내부에서 javascript:fncGetList(n) 호출하도록 구성되어 있으면 OK -->
       <jsp:include page="../common/pageNavigator.jsp"/>
     </td>
   </tr>

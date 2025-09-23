@@ -81,4 +81,16 @@ public class Purchase implements java.io.Serializable {
 	public void setReceiverEmail(String receiverEmail) {
 		this.receiverEmail = receiverEmail;
 	}
+	
+	public String getPaymentOptionName() {
+	    if (paymentOption == null) return "";
+	    // 앞뒤 공백 제거
+	    String opt = paymentOption.trim();
+
+	    switch (opt) {
+	        case "1": return "현금구매";
+	        case "2": return "카드구매";
+	        default : return opt;   // 알 수 없는 코드는 그대로 노출
+	    }
+	}
 }
