@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,37 +54,34 @@ public class ProductController {
 	    return "/product/addProductView.jsp";
 	}
 
-    @RequestMapping(value = "addProduct", method = RequestMethod.POST)
-    public String addProduct(@ModelAttribute Product product, @RequestParam(value="fileName", required=false) MultipartFile file,
-            HttpServletRequest request) throws Exception {
-    	System.out.println("ProductController.addProduct() - GET");
-    	
-		// 1) 업로드 경로
-		String uploadDir = request.getServletContext().getRealPath("/upload"); // 또는 외부 경로
-		File dir = new File(uploadDir);
-		if (!dir.exists()) dir.mkdirs();
-		
-		// 2) 파일 저장
-		if (file != null && !file.isEmpty()) {
-		String original = file.getOriginalFilename();
-		String ext = (original != null && original.lastIndexOf(".") != -1)
-		           ? original.substring(original.lastIndexOf("."))
-		           : "";
-		String savedName = java.util.UUID.randomUUID().toString().replace("-", "") + ext;
-		
-		file.transferTo(new File(dir, savedName));   // 실제 저장
-		product.setFileName(savedName);             // DB엔 파일명만 저장
-		} else {
-		product.setFileName(null); // 또는 "noimg.png"
-		}
-		
-		// 3) 나머지는 서비스로
-		productService.addProduct(product);
-		return "redirect:/product/getProductList";
-}
+	@RequestMapping(value="addProduct", method=RequestMethod.POST)
+	public String addProduct(
+	        @ModelAttribute Product product,
+	        @RequestParam(value="uploadFile", required=false) MultipartFile file,
+	        HttpServletRequest req) throws Exception {
+
+	    if (file != null && !file.isEmpty()) {
+	        String uploadDir = req.getServletContext().getRealPath("/upload");
+	        File dir = new File(uploadDir);
+	        if (!dir.exists()) dir.mkdirs();
+
+	        String original = file.getOriginalFilename();
+	        String ext = (original != null && original.lastIndexOf(".") != -1)
+	                   ? original.substring(original.lastIndexOf(".")) : "";
+	        String saved = java.util.UUID.randomUUID().toString().replace("-", "") + ext;
+	        file.transferTo(new java.io.File(dir, saved));
+
+	        product.setFileName(saved); // ✅ 여기서만 fileName 세팅
+	    }
+
+	    // 나머지 필드(prodName, price, manuDate, prodDetail...)는 @ModelAttribute로 바인딩
+	    productService.addProduct(product);
+	    return "redirect:/product/getProductList";
+	}
+
 
     // ====== Read ======
-    @RequestMapping(value = "/getProduct", method = RequestMethod.POST)
+    @RequestMapping(value = "getProduct", method = RequestMethod.POST)
     public String getProduct(@RequestParam("prodNo") int prodNo, Model model) throws Exception {   	
     	Product product = productService.getProduct(prodNo);
         model.addAttribute("product", product);
@@ -91,18 +89,67 @@ public class ProductController {
     }
 
     // ====== Update ======
-    @RequestMapping(value = "updateProduct", method = { RequestMethod.GET, RequestMethod.POST })
-    public String updateProduct(@RequestParam("prodNo") int prodNo, Model model) throws Exception {
+    @RequestMapping(value = "updateProductView", method = { RequestMethod.GET, RequestMethod.POST })
+    public String updateProductView(@RequestParam("prodNo") int prodNo, Model model) throws Exception {
         Product product = productService.getProduct(prodNo);
         model.addAttribute("product", product);
         return "/product/updateProduct.jsp";
     }
 
-    @RequestMapping(value = "updateProduct", method = RequestMethod.POST)
-    public String updateProduct(@ModelAttribute("product") Product product) throws Exception {
+ // 클래스 레벨이 @RequestMapping("/product") 라고 가정
+    @PostMapping(value = "updateProduct", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String updateProduct(@ModelAttribute("product") Product product,
+                                @RequestParam(value = "uploadFile", required = false) org.springframework.web.multipart.MultipartFile file,
+                                @RequestParam(value = "oldFileName", required = false) String oldFileName,
+                                javax.servlet.http.HttpServletRequest request) throws Exception {
+
+        // 1) manuDate 정규화(매퍼가 'YYYYMMDD'면 숫자만 남기기)
+        if (product.getManuDate() != null) {
+            product.setManuDate(product.getManuDate().replaceAll("\\D", ""));
+        }
+
+        // 2) 업로드 디렉터리 준비
+        String uploadDir = request.getServletContext().getRealPath("/upload");
+        java.io.File dir = new java.io.File(uploadDir);
+        if (!dir.exists()) dir.mkdirs();
+
+        // 3) 새 파일이 있으면 저장 + fileName 교체
+        if (file != null && !file.isEmpty()) {
+            String original = file.getOriginalFilename();
+            String ext = (original != null && original.lastIndexOf(".") != -1)
+                       ? original.substring(original.lastIndexOf(".")) : "";
+            String saved = java.util.UUID.randomUUID().toString().replace("-", "") + ext;
+
+            file.transferTo(new java.io.File(dir, saved));
+            // DB 저장용 파일명 세팅
+            product.setFileName(saved);
+
+            // (선택) 기존 파일 삭제
+            if (oldFileName != null && !oldFileName.isEmpty() && !oldFileName.equals(saved)) {
+                java.io.File old = new java.io.File(dir, oldFileName);
+                if (old.isFile()) try { old.delete(); } catch (Exception ignore) {}
+            }
+        } else {
+            // 4) 새 파일이 없으면 기존 파일 유지
+            if (product.getFileName() == null || product.getFileName().isEmpty()) {
+                if (oldFileName != null && !oldFileName.isEmpty()) {
+                    product.setFileName(oldFileName);
+                } else {
+                    // (폴백) DB에서 조회해 유지
+                    com.model2.mvc.service.domain.Product db = productService.getProduct(product.getProdNo());
+                    if (db != null) product.setFileName(db.getFileName());
+                }
+            }
+        }
+
+        // 5) 업데이트
         productService.updateProduct(product);
+
+        // 6) 상세 화면으로 이동(파라미터 필요)
+        //return "redirect:/product/getProduct?prodNo=" + product.getProdNo();
         return "forward:/product/getProduct";
     }
+
 
     // ====== List ======
     @RequestMapping(value = "getProductList", method = { RequestMethod.GET, RequestMethod.POST })

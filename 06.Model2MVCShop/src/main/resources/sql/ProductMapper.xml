@@ -16,21 +16,24 @@
     </resultMap>
 
     <!-- Insert -->
-<insert id="addProduct" parameterType="com.model2.mvc.service.domain.Product">
-  INSERT INTO product
-    (prod_no, prod_name, price, manufacture_day, image_file, prod_detail, reg_date)
-  VALUES
-    (
-      SEQ_PRODUCT_PROD_NO.NEXTVAL,
-      #{prodName},
-      #{price},
-      TO_DATE(#{manuDate, jdbcType=VARCHAR}, 'YYYYMMDD'),
-      #{fileName, jdbcType=VARCHAR},   <!-- ✅ NULL 안전 -->
-      #{prodDetail},
-      SYSDATE
-    )
-</insert>
-
+	<insert id="addProduct" parameterType="com.model2.mvc.service.domain.Product">
+	  INSERT INTO product
+	    (prod_no, prod_name, price, manufacture_day, image_file, prod_detail, reg_date)
+	  VALUES
+	    (SEQ_PRODUCT_PROD_NO.NEXTVAL,
+	     #{prodName},
+	     #{price},
+	     <choose>
+	       <when test="manuDate != null and manuDate != ''">
+	         -- 구분자 전부 제거 후 YYYYMMDD로 파싱
+	         TO_DATE(REGEXP_REPLACE(#{manuDate, jdbcType=VARCHAR}, '[^0-9]', ''), 'YYYYMMDD')
+	       </when>
+	       <otherwise>NULL</otherwise>
+	     </choose>,
+	     #{fileName},
+	     #{prodDetail},
+	     SYSDATE)
+	</insert>
 
     <!-- Select one with latest tran code (if any) -->
     <select id="getProduct" parameterType="int" resultMap="productSelectMap">

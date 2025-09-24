@@ -64,7 +64,7 @@
     </td>
     <td bgcolor="D6D6D6" width="1"></td>
     <td class="ct_write01">
-      <img src="${product.fileName}"/>
+      <img src="/upload/${product.fileName}"/>
     </td>
   </tr>
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
@@ -107,7 +107,7 @@
           
 			<c:choose>
 			  <c:when test="${not empty user and user.role eq 'admin'}">
-			    <form action="${cPath}/product/updateProduct" method="post" style="display:inline;">
+			    <form action="${cPath}/product/updateProductView" method="post" style="display:inline;">
 			      <input type="hidden" name="prodNo" value="${product.prodNo}" />
 			      <button type="submit" class="a-like">수정</button>
 			    </form>

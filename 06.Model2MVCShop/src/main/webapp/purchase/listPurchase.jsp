@@ -7,19 +7,27 @@
 <head>
 <title>구매 목록조회</title>
 <link rel="stylesheet" href="/css/admin.css" type="text/css">
+
 <script type="text/javascript">
-  <!--
-  	function fncMove(page) { 
-	  location.href = "/purchase/getPurchaseList?page="+page; 
-	}  
-  
-	// 검색 / page 두가지 경우 모두 Form 전송을 위해 JavaScrpt 이용  
-	function fncGetList(currentPage) {
-		document.getElementById("currentPage").value = currentPage;
-	   	document.detailForm.submit();		
-	}
--->  
+// 페이지 이동(POST 전송)
+function fncGetList(page) {
+  var f = document.detailForm;
+  if (!f) return;
+
+  // currentPage hidden 필드가 없으면 생성
+  if (!f.currentPage) {
+    var hp = document.createElement("input");
+    hp.type = "hidden";
+    hp.name = "currentPage";
+    f.appendChild(hp);
+  }
+  f.currentPage.value = page;
+
+  f.method = "post";
+  f.submit();
+}
 </script>
+
 </head>
 
 <body bgcolor="#ffffff" text="#000000">
