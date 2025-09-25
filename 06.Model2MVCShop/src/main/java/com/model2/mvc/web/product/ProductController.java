@@ -1,6 +1,9 @@
 package com.model2.mvc.web.product;
 
 import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +91,7 @@ public class ProductController {
         return "/product/getProduct.jsp";
     }
 
-    // ====== Update ======
+    // ====== UpdateView ======
     @RequestMapping(value = "updateProductView", method = { RequestMethod.GET, RequestMethod.POST })
     public String updateProductView(@RequestParam("prodNo") int prodNo, Model model) throws Exception {
         Product product = productService.getProduct(prodNo);
@@ -96,47 +99,41 @@ public class ProductController {
         return "/product/updateProduct.jsp";
     }
 
- // 클래스 레벨이 @RequestMapping("/product") 라고 가정
+    // ====== Update ======
     @PostMapping(value = "updateProduct", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public String updateProduct(@ModelAttribute("product") Product product,
-                                @RequestParam(value = "uploadFile", required = false) org.springframework.web.multipart.MultipartFile file,
+                                @RequestParam(value = "uploadFile", required = false) MultipartFile file,
                                 @RequestParam(value = "oldFileName", required = false) String oldFileName,
-                                javax.servlet.http.HttpServletRequest request) throws Exception {
+                                HttpServletRequest request) throws Exception {
 
-        // 1) manuDate 정규화(매퍼가 'YYYYMMDD'면 숫자만 남기기)
-        if (product.getManuDate() != null) {
-            product.setManuDate(product.getManuDate().replaceAll("\\D", ""));
-        }
+        // 1) manuDate 정규화: 모든 구분자 제거 + YYMMDD → YYYYMMDD 확장 + 유효성 검증
+        product.setManuDate(normalizeYYYYMMDD(product.getManuDate()));
 
         // 2) 업로드 디렉터리 준비
         String uploadDir = request.getServletContext().getRealPath("/upload");
-        java.io.File dir = new java.io.File(uploadDir);
+        File dir = new File(uploadDir);
         if (!dir.exists()) dir.mkdirs();
 
-        // 3) 새 파일이 있으면 저장 + fileName 교체
+        // 3) 새 파일 저장
         if (file != null && !file.isEmpty()) {
             String original = file.getOriginalFilename();
             String ext = (original != null && original.lastIndexOf(".") != -1)
                        ? original.substring(original.lastIndexOf(".")) : "";
             String saved = java.util.UUID.randomUUID().toString().replace("-", "") + ext;
-
-            file.transferTo(new java.io.File(dir, saved));
-            // DB 저장용 파일명 세팅
+            file.transferTo(new File(dir, saved));
             product.setFileName(saved);
 
-            // (선택) 기존 파일 삭제
             if (oldFileName != null && !oldFileName.isEmpty() && !oldFileName.equals(saved)) {
-                java.io.File old = new java.io.File(dir, oldFileName);
+                File old = new File(dir, oldFileName);
                 if (old.isFile()) try { old.delete(); } catch (Exception ignore) {}
             }
         } else {
-            // 4) 새 파일이 없으면 기존 파일 유지
+            // 4) 새 파일 없으면 기존 유지
             if (product.getFileName() == null || product.getFileName().isEmpty()) {
                 if (oldFileName != null && !oldFileName.isEmpty()) {
                     product.setFileName(oldFileName);
                 } else {
-                    // (폴백) DB에서 조회해 유지
-                    com.model2.mvc.service.domain.Product db = productService.getProduct(product.getProdNo());
+                    Product db = productService.getProduct(product.getProdNo());
                     if (db != null) product.setFileName(db.getFileName());
                 }
             }
@@ -145,9 +142,42 @@ public class ProductController {
         // 5) 업데이트
         productService.updateProduct(product);
 
-        // 6) 상세 화면으로 이동(파라미터 필요)
-        //return "redirect:/product/getProduct?prodNo=" + product.getProdNo();
+        // 6) 상세로
         return "forward:/product/getProduct";
+    }
+
+    /**
+     * 입력 문자열을 YYYYMMDD로 정규화한다.
+     * - 허용 예: "2025-09-01", "2025/09/01", "2025.09.01", "20250901", "25/09/01", "250901"
+     * - 규칙: 6자리(YYMMDD)는 00–69 → 20YY, 70–99 → 19YY
+     * - 유효하지 않은 날짜나 빈값은 null 반환(= mapper에서 컬럼 유지)
+     */
+    private String normalizeYYYYMMDD(String raw) {
+        if (raw == null) return null;
+        String digits = raw.replaceAll("\\D", ""); // 숫자만
+        if (digits.isEmpty()) return null;
+
+        String yyyymmdd;
+        if (digits.length() == 8) {
+            yyyymmdd = digits;
+        } else if (digits.length() == 6) {
+            String yy = digits.substring(0, 2);
+            String mm = digits.substring(2, 4);
+            String dd = digits.substring(4, 6);
+            int yyNum = Integer.parseInt(yy);
+            int century = (yyNum <= 69) ? 2000 : 1900;  // 00–69 => 20xx, 70–99 => 19xx
+            yyyymmdd = String.valueOf(century + yyNum) + mm + dd;
+        } else {
+            return null; // 지원하지 않는 길이 → 컬럼 유지
+        }
+
+        // 날짜 유효성 검증 (존재하는 날짜인지 체크)
+        try {
+            LocalDate.parse(yyyymmdd, DateTimeFormatter.BASIC_ISO_DATE); // yyyyMMdd
+            return yyyymmdd;
+        } catch (DateTimeParseException ex) {
+            return null; // 잘못된 날짜 → 컬럼 유지
+        }
     }
 
 

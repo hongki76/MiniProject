@@ -102,14 +102,31 @@
     </select>
 
     <!-- Update -->
-    <update id="updateProduct" parameterType="com.model2.mvc.service.domain.Product">
-        UPDATE product
-           SET prod_name = #{prodName},
-               price     = #{price},
-               manufacture_day = #{manuDate},
-               image_file = #{fileName},
-               prod_detail = #{prodDetail}
-         WHERE prod_no = #{prodNo}
-    </update>        
+<update id="updateProduct" parameterType="com.model2.mvc.service.domain.Product">
+  UPDATE product
+     SET prod_name = #{prodName, jdbcType=VARCHAR},
+         price     = #{price, jdbcType=INTEGER},
+
+         manufacture_day =
+           <choose>
+             <when test="manuDate != null and manuDate != ''">
+               TO_DATE(#{manuDate, jdbcType=VARCHAR}, 'YYYYMMDD')
+             </when>
+             <otherwise>
+               manufacture_day   <!-- 값이 없으면 기존 값 유지 -->
+             </otherwise>
+           </choose>,
+
+         image_file =
+           <choose>
+             <when test="fileName != null and fileName != ''">
+               #{fileName, jdbcType=VARCHAR}
+             </when>
+             <otherwise>image_file</otherwise>
+           </choose>,
+
+         prod_detail = #{prodDetail, jdbcType=VARCHAR}
+   WHERE prod_no = #{prodNo, jdbcType=INTEGER}
+</update>
 
 </mapper>

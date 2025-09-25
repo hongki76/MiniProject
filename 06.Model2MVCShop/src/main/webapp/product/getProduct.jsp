@@ -5,7 +5,7 @@
 <c:set var="cPath" value="${pageContext.request.contextPath}" />
 <c:set var="proTranCode" value="${fn:trim(product.proTranCode)}" />
 <c:set var="user" value="${sessionScope.user}" />
-<c:set var="buyable" value="${empty proTranCode or proTranCode eq '0'}"/>
+<c:set var="editable" value="${empty proTranCode or proTranCode eq '0'}"/>
 
 <html>
 <head>
@@ -14,6 +14,7 @@
   <style>
     .txt-link { background:none; border:0; padding:0; color:#06c; text-decoration:underline; cursor:pointer; font:inherit; }
     .txt-disabled { color:#999; text-decoration:none; cursor:default; }
+    .a-like{ cursor:pointer; text-decoration:underline; color:#06c; background:none; border:none; padding:0; font:inherit; }
   </style>
 </head>
 
@@ -22,7 +23,7 @@
 <!-- 상단 타이틀 영역 -->
 <table width="100%" height="37" border="0" cellpadding="0" cellspacing="0">
   <tr>
-    <td width="15" height="37"><img src="/images/ct_ttl_img01.gif" width="15" height="37"></td>
+    <td width="15" height="37"><img src="/images/ct_ttl_img01.gif" width="15" height="37" alt=""></td>
     <td background="/images/ct_ttl_img02.gif" width="100%" style="padding-left:10px;">
       <table width="100%" border="0" cellspacing="0" cellpadding="0">
         <tr>
@@ -31,7 +32,7 @@
         </tr>
       </table>
     </td>
-    <td width="12" height="37"><img src="/images/ct_ttl_img03.gif" width="12" height="37"/></td>
+    <td width="12" height="37"><img src="/images/ct_ttl_img03.gif" width="12" height="37" alt=""/></td>
   </tr>
 </table>
 
@@ -39,39 +40,27 @@
 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:13px;">
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
   <tr>
-    <td width="104" class="ct_write">
-      상품번호 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle"/>
-    </td>
+    <td width="104" class="ct_write">상품번호 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" alt="필수"/></td>
     <td bgcolor="D6D6D6" width="1"></td>
-    <td class="ct_write01">
-      <table width="100%" border="0" cellspacing="0" cellpadding="0">
-        <tr><td width="105">${product.prodNo}</td></tr>
-      </table>
-    </td>
+    <td class="ct_write01"><table width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td width="105">${product.prodNo}</td></tr></table></td>
   </tr>
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
   <tr>
-    <td width="104" class="ct_write">
-      상품명 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle"/>
-    </td>
+    <td width="104" class="ct_write">상품명 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" alt="필수"/></td>
     <td bgcolor="D6D6D6" width="1"></td>
     <td class="ct_write01">${product.prodName}</td>
   </tr>
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
   <tr>
-    <td width="104" class="ct_write">
-      상품이미지 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle"/>
-    </td>
+    <td width="104" class="ct_write">상품이미지 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" alt="필수"/></td>
     <td bgcolor="D6D6D6" width="1"></td>
     <td class="ct_write01">
-      <img src="/upload/${product.fileName}"/>
+      <img src="/upload/${product.fileName}" />
     </td>
   </tr>
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
   <tr>
-    <td width="104" class="ct_write">
-      상품상세정보 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle"/>
-    </td>
+    <td width="104" class="ct_write">상품상세정보 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" alt="필수"/></td>
     <td bgcolor="D6D6D6" width="1"></td>
     <td class="ct_write01">${product.prodDetail}</td>
   </tr>
@@ -104,27 +93,35 @@
       <table border="0" cellspacing="0" cellpadding="0">
         <tr>
           <td width="50" height="23">
-          
-			<c:choose>
-			  <c:when test="${not empty user and user.role eq 'admin'}">
-			    <form action="${cPath}/product/updateProductView" method="post" style="display:inline;">
-			      <input type="hidden" name="prodNo" value="${product.prodNo}" />
-			      <button type="submit" class="a-like">수정</button>
-			    </form>
-			  </c:when>
-			
-			  <c:otherwise>
-				<a href="${cPath}/purchase/addPurchase?prodNo=${product.prodNo}"
-				   class="${buyable ? 'txt-link' : 'txt-disabled'}"
-				   <c:if test="${not buyable}">aria-disabled="true" onclick="return false;"</c:if>>
-				  구매
-				</a>
-			  </c:otherwise>
-			</c:choose>
-			
+
+            <!-- 관리자: 수정(POST) -->          
+            <c:choose>
+              <c:when test="${not empty user and user.role eq 'admin' and editable}">
+                <form action="${cPath}/product/updateProductView" method="post" style="display:inline;">
+                  <input type="hidden" name="prodNo" value="${product.prodNo}" />
+                  <button type="submit" class="a-like">수정</button>
+                </form>
+              </c:when>
+            </c:choose>
+
+            <!-- 일반 사용자: 구매 -->
+            <c:choose>
+              <c:when test="${not empty user and user.role eq 'user' and editable}">
+                <!-- GET 유지 (원 코드 호환). POST 전환 원하면 아래 주석의 폼 버전 사용 -->
+                <a href="${cPath}/purchase/addPurchase?prodNo=${product.prodNo}" class="txt-link" id="btnBuy" data-cpath="${cPath}" data-prodno="${product.prodNo}">구매</a>
+                <%-- 
+                <form action="${cPath}/purchase/addPurchase" method="post" style="display:inline;">
+                  <input type="hidden" name="prodNo" value="${product.prodNo}" />
+                  <button type="submit" class="txt-link">구매</button>
+                </form>
+                --%>
+              </c:when>
+            </c:choose>
+
           </td>
           <td width="30" height="23">
-            <a href="javascript:history.go(-1)">이전</a>
+            <!-- javascript:history.go(-1) 제거 -->
+            <button type="button" class="a-like" id="btnBack">이전</button>
           </td>
         </tr>
       </table>
@@ -132,5 +129,8 @@
   </tr>
 </table>
 
+<!-- 스크립트 로드: 하단에 배치 -->
+<script src="/javascript/jquery-3.7.1.min.js"></script>
+<script src="/javascript/product-get.js"></script>
 </body>
 </html>
