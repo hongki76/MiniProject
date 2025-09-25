@@ -1,5 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <c:set var="cPath" value="${pageContext.request.contextPath}" />
@@ -68,7 +69,53 @@
   <tr>
     <td width="104" class="ct_write">제조일자</td>
     <td bgcolor="D6D6D6" width="1"></td>
-    <td class="ct_write01">${product.manuDate}</td>
+    <td class="ct_write01">
+		<c:if test="${not empty product.manuDate}">
+		  <c:set var="md" value="${product.manuDate}" />
+		
+		  <%-- 구분자 제거( -, /, ., 공백 ) → 숫자만 남김 --%>
+		  <c:set var="digits" value="${fn:replace(md,'-','')}" />
+		  <c:set var="digits" value="${fn:replace(digits,'/','')}" />
+		  <c:set var="digits" value="${fn:replace(digits,'.','')}" />
+		  <c:set var="digits" value="${fn:replace(digits,' ','')}" />
+		
+		  <c:choose>
+		    <%-- 8자리: YYYYMMDD (예: 2025/09/01, 2025-09-01, 20250901 모두 여기로) --%>
+		    <c:when test="${fn:length(digits) == 8}">
+		      ${fn:substring(digits,0,4)}-${fn:substring(digits,4,6)}-${fn:substring(digits,6,8)}
+		    </c:when>
+		
+		    <%-- 6자리: YYMMDD (예: 25/09/01, 250901) → 세기 보정(00~69=20xx, 70~99=19xx) --%>
+		    <c:when test="${fn:length(digits) == 6}">
+		      <c:set var="yy" value="${fn:substring(digits,0,2)}" />
+		      <fmt:parseNumber var="yyNum" value="${yy}" integerOnly="true" />
+		      <c:choose>
+		        <c:when test="${yyNum le 69}">
+		          <c:set var="year4" value="${'20'}${yy}" />
+		        </c:when>
+		        <c:otherwise>
+		          <c:set var="year4" value="${'19'}${yy}" />
+		        </c:otherwise>
+		      </c:choose>
+		      <c:set var="mm" value="${fn:substring(digits,2,4)}" />
+		      <c:set var="dd" value="${fn:substring(digits,4,6)}" />
+		      ${year4}-${mm}-${dd}
+		    </c:when>
+		
+		    <%-- 그 외: 기존이 이미 'YYYY-MM-DD ...'이면 앞 10자만, 아니면 원본 출력 --%>
+		    <c:otherwise>
+		      <c:choose>
+		        <c:when test="${fn:length(md) >= 10 && fn:substring(md,4,5) == '-'}">
+		          ${fn:substring(md,0,10)}
+		        </c:when>
+		        <c:otherwise>
+		          ${md}
+		        </c:otherwise>
+		      </c:choose>
+		    </c:otherwise>
+		  </c:choose>
+		</c:if>
+    </td>
   </tr>
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
   <tr>
@@ -80,7 +127,11 @@
   <tr>
     <td width="104" class="ct_write">등록일자</td>
     <td bgcolor="D6D6D6" width="1"></td>
-    <td class="ct_write01">${product.regDate}</td>
+    <td class="ct_write01">
+        <c:if test="${not empty product.regDate}">            
+          <fmt:formatDate value="${product.regDate}" pattern="yyyy-MM-dd" />
+        </c:if>
+    </td>
   </tr>
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
 </table>

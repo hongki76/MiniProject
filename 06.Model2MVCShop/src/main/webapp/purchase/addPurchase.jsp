@@ -23,12 +23,7 @@
       </tr>
       <tr>
         <td>구매방법</td>
-        <td>
-          <c:choose>
-            <c:when test="${purchase.paymentOption eq '001'}">신용구매</c:when>
-            <c:otherwise>현금구매</c:otherwise>
-          </c:choose>
-        </td>
+		<td>${purchase.paymentOptionName}</td>
       </tr>
       <tr>
         <td>구매자이름</td>
@@ -39,7 +34,7 @@
         <td>${purchase.receiverPhone}</td>
       </tr>
       <tr>
-        <td>구매자주소</td>
+        <td>구매자Email</td>
         <td>${purchase.receiverEmail}</td>
       </tr>
       <tr>
