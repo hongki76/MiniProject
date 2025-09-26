@@ -16,6 +16,33 @@
     .txt-link { background:none; border:0; padding:0; color:#06c; text-decoration:underline; cursor:pointer; font:inherit; }
     .txt-disabled { color:#999; text-decoration:none; cursor:default; }
     .a-like{ cursor:pointer; text-decoration:underline; color:#06c; background:none; border:none; padding:0; font:inherit; }
+
+    /* ===== 첨부 갤러리 ===== */
+    .file-grid{
+      margin-top:8px;
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap:10px;
+    }
+    .file-card{
+      border:1px solid #ddd; border-radius:8px; padding:8px; background:#fafafa;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .thumb{
+      width:100%; aspect-ratio: 4/3; object-fit:cover; border:1px solid #eee; border-radius:6px; background:#fff;
+      display:block;
+    }
+    .thumb-placeholder{
+      width:100%; aspect-ratio:4/3; border:1px dashed #ccc; border-radius:6px;
+      display:grid; place-items:center; color:#777; font-size:12px; background:#fff;
+    }
+    .file-name{ font-size:12px; line-height:1.4; word-break:break-all; color:#333; }
+    .file-meta{ font-size:11px; color:#666; }
+    .file-actions{ display:flex; gap:8px; align-items:center; }
+    .btn-mini{
+      font-size:12px; padding:2px 6px; border:1px solid #ddd; border-radius:6px; background:#fff; cursor:pointer;
+    }
+    .muted{ color:#888; font-size:12px; }
   </style>
 </head>
 
@@ -52,57 +79,87 @@
     <td class="ct_write01">${product.prodName}</td>
   </tr>
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
+
+  <!-- ===== 멀티 첨부 갤러리/목록 ===== -->
   <tr>
-    <td width="104" class="ct_write">상품이미지 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" alt="필수"/></td>
+    <td width="104" class="ct_write">첨부파일</td>
     <td bgcolor="D6D6D6" width="1"></td>
     <td class="ct_write01">
-      <img src="/upload/${product.fileName}" />
+
+      <c:choose>
+        <c:when test="${not empty fileList}">
+          <div class="muted">총 ${fn:length(fileList)}개</div>
+
+          <div class="file-grid">
+            <c:forEach var="f" items="${fileList}">
+              <c:set var="name" value="${f.fileName}" />
+              <c:set var="lower" value="${fn:toLowerCase(name)}" />
+              <c:set var="isImg"
+                     value="${fn:endsWith(lower,'.png')
+                           or fn:endsWith(lower,'.jpg')
+                           or fn:endsWith(lower,'.jpeg')
+                           or fn:endsWith(lower,'.gif')
+                           or fn:endsWith(lower,'.webp')
+                           or fn:endsWith(lower,'.bmp')}" />
+
+              <div class="file-card">
+                <c:choose>
+                  <c:when test="${isImg}">
+                    <img class="thumb" src="${cPath}/upload/${name}" alt="${name}" />
+                  </c:when>
+                  <c:otherwise>
+                    <div class="thumb-placeholder">미리보기 없음</div>
+                  </c:otherwise>
+                </c:choose>
+
+                <div class="file-name" title="${name}">${name}</div>
+                <div class="file-actions">
+                  <a class="btn-mini" href="${cPath}/upload/${name}" target="_blank">열기</a>
+                  <a class="btn-mini" href="${cPath}/upload/${name}" download>다운로드</a>
+                </div>
+              </div>
+            </c:forEach>
+          </div>
+        </c:when>
+        <c:otherwise>
+          <span class="muted">첨부된 파일이 없습니다.</span>
+        </c:otherwise>
+      </c:choose>
+
     </td>
   </tr>
+
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
+
   <tr>
     <td width="104" class="ct_write">상품상세정보 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" alt="필수"/></td>
     <td bgcolor="D6D6D6" width="1"></td>
     <td class="ct_write01">${product.prodDetail}</td>
   </tr>
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
+
   <tr>
     <td width="104" class="ct_write">제조일자</td>
     <td bgcolor="D6D6D6" width="1"></td>
     <td class="ct_write01">
 		<c:if test="${not empty product.manuDate}">
 		  <c:set var="md" value="${product.manuDate}" />
-		
-		  <%-- 구분자 제거( -, /, ., 공백 ) → 숫자만 남김 --%>
-		  <c:set var="digits" value="${fn:replace(md,'-','')}" />
-		  <c:set var="digits" value="${fn:replace(digits,'/','')}" />
-		  <c:set var="digits" value="${fn:replace(digits,'.','')}" />
-		  <c:set var="digits" value="${fn:replace(digits,' ','')}" />
-		
+		  <c:set var="digits" value="${fn:replace(fn:replace(fn:replace(fn:replace(md,'-',''),'/',''),'.',''),' ','')}" />
 		  <c:choose>
-		    <%-- 8자리: YYYYMMDD (예: 2025/09/01, 2025-09-01, 20250901 모두 여기로) --%>
 		    <c:when test="${fn:length(digits) == 8}">
 		      ${fn:substring(digits,0,4)}-${fn:substring(digits,4,6)}-${fn:substring(digits,6,8)}
 		    </c:when>
-		
-		    <%-- 6자리: YYMMDD (예: 25/09/01, 250901) → 세기 보정(00~69=20xx, 70~99=19xx) --%>
 		    <c:when test="${fn:length(digits) == 6}">
 		      <c:set var="yy" value="${fn:substring(digits,0,2)}" />
 		      <fmt:parseNumber var="yyNum" value="${yy}" integerOnly="true" />
 		      <c:choose>
-		        <c:when test="${yyNum le 69}">
-		          <c:set var="year4" value="${'20'}${yy}" />
-		        </c:when>
-		        <c:otherwise>
-		          <c:set var="year4" value="${'19'}${yy}" />
-		        </c:otherwise>
+		        <c:when test="${yyNum le 69}"><c:set var="year4" value="${'20'}${yy}" /></c:when>
+		        <c:otherwise><c:set var="year4" value="${'19'}${yy}" /></c:otherwise>
 		      </c:choose>
 		      <c:set var="mm" value="${fn:substring(digits,2,4)}" />
 		      <c:set var="dd" value="${fn:substring(digits,4,6)}" />
 		      ${year4}-${mm}-${dd}
 		    </c:when>
-		
-		    <%-- 그 외: 기존이 이미 'YYYY-MM-DD ...'이면 앞 10자만, 아니면 원본 출력 --%>
 		    <c:otherwise>
 		      <c:choose>
 		        <c:when test="${fn:length(md) >= 10 && fn:substring(md,4,5) == '-'}">
@@ -117,6 +174,7 @@
 		</c:if>
     </td>
   </tr>
+
   <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
   <tr>
     <td width="104" class="ct_write">가격</td>
@@ -128,7 +186,7 @@
     <td width="104" class="ct_write">등록일자</td>
     <td bgcolor="D6D6D6" width="1"></td>
     <td class="ct_write01">
-        <c:if test="${not empty product.regDate}">            
+        <c:if test="${not empty product.regDate}">
           <fmt:formatDate value="${product.regDate}" pattern="yyyy-MM-dd" />
         </c:if>
     </td>
@@ -144,8 +202,6 @@
       <table border="0" cellspacing="0" cellpadding="0">
         <tr>
           <td width="50" height="23">
-
-            <!-- 관리자: 수정(POST) -->          
             <c:choose>
               <c:when test="${not empty user and user.role eq 'admin' and editable}">
                 <form action="${cPath}/product/updateProductView" method="post" style="display:inline;">
@@ -155,23 +211,14 @@
               </c:when>
             </c:choose>
 
-            <!-- 일반 사용자: 구매 -->
             <c:choose>
               <c:when test="${not empty user and user.role eq 'user' and editable}">
-                <!-- GET 유지 (원 코드 호환). POST 전환 원하면 아래 주석의 폼 버전 사용 -->
-                <a href="${cPath}/purchase/addPurchase?prodNo=${product.prodNo}" class="txt-link" id="btnBuy" data-cpath="${cPath}" data-prodno="${product.prodNo}">구매</a>
-                <%-- 
-                <form action="${cPath}/purchase/addPurchase" method="post" style="display:inline;">
-                  <input type="hidden" name="prodNo" value="${product.prodNo}" />
-                  <button type="submit" class="txt-link">구매</button>
-                </form>
-                --%>
+                <a href="${cPath}/purchase/addPurchase?prodNo=${product.prodNo}" class="txt-link" id="btnBuy"
+                   data-cpath="${cPath}" data-prodno="${product.prodNo}">구매</a>
               </c:when>
             </c:choose>
-
           </td>
           <td width="30" height="23">
-            <!-- javascript:history.go(-1) 제거 -->
             <button type="button" class="a-like" id="btnBack">이전</button>
           </td>
         </tr>
@@ -180,7 +227,7 @@
   </tr>
 </table>
 
-<!-- 스크립트 로드: 하단에 배치 -->
+<!-- 스크립트 로드 -->
 <script src="/javascript/jquery-3.7.1.min.js"></script>
 <script src="/javascript/product-get.js"></script>
 </body>

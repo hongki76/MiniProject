@@ -14,25 +14,39 @@
         <!-- from TRANSACTION (latest) -->
         <result property="proTranCode" column="pro_tran_code" jdbcType="VARCHAR"/>
     </resultMap>
+    
+	<resultMap id="productFileSelectMap" type="com.model2.mvc.service.domain.ProductFile">
+	  <id     property="fileNo"   column="file_no"/>
+	  <result property="prodNo"   column="prod_no"/>
+	  <result property="fileName" column="file_name"/>
+	</resultMap>
 
     <!-- Insert -->
 	<insert id="addProduct" parameterType="com.model2.mvc.service.domain.Product">
+	  <!-- PK 먼저 뽑아서 product.prodNo 에 넣음 -->
+	  <selectKey keyProperty="prodNo" resultType="int" order="BEFORE">
+	    SELECT seq_product_prod_no.NEXTVAL FROM dual
+	  </selectKey>
+	
 	  INSERT INTO product
-	    (prod_no, prod_name, price, manufacture_day, image_file, prod_detail, reg_date)
+	    (prod_no, prod_name, price, manufacture_day, prod_detail, reg_date)
 	  VALUES
-	    (SEQ_PRODUCT_PROD_NO.NEXTVAL,
+	    (#{prodNo},
 	     #{prodName},
 	     #{price},
 	     <choose>
 	       <when test="manuDate != null and manuDate != ''">
-	         -- 구분자 전부 제거 후 YYYYMMDD로 파싱
 	         TO_DATE(REGEXP_REPLACE(#{manuDate, jdbcType=VARCHAR}, '[^0-9]', ''), 'YYYYMMDD')
 	       </when>
 	       <otherwise>NULL</otherwise>
 	     </choose>,
-	     #{fileName},
 	     #{prodDetail},
 	     SYSDATE)
+	</insert>
+	
+	<insert id="addProductFile" parameterType="com.model2.mvc.service.domain.ProductFile">
+	  INSERT INTO product_file (file_no, prod_no, file_name)
+	  VALUES (seq_product_file_no.NEXTVAL, #{prodNo}, #{fileName})
 	</insert>
 
     <!-- Select one with latest tran code (if any) -->
@@ -63,18 +77,18 @@
     
     <!-- 가격순 정렬 -->
     <sql id="order-by-price">
-  <choose>
-    <when test="orderByPriceAsc == 'ASC' or orderByPriceAsc == 'asc'">
-      ORDER BY p.price ASC
-    </when>
-    <when test="orderByPriceAsc == 'DESC' or orderByPriceAsc == 'desc'">
-      ORDER BY p.price DESC
-    </when>
-    <otherwise>
-      ORDER BY p.prod_no DESC   <!-- 기본 정렬(원하면 변경) -->
-    </otherwise>
-  </choose>
-</sql>
+	  <choose>
+	    <when test="orderByPriceAsc == 'ASC' or orderByPriceAsc == 'asc'">
+	      ORDER BY p.price ASC
+	    </when>
+	    <when test="orderByPriceAsc == 'DESC' or orderByPriceAsc == 'desc'">
+	      ORDER BY p.price DESC
+	    </when>
+	    <otherwise>
+	      ORDER BY p.prod_no DESC   <!-- 기본 정렬(원하면 변경) -->
+	    </otherwise>
+	  </choose>
+	</sql>
 
     <!-- List with pagination -->
     <select id="getProductList" parameterType="com.model2.mvc.common.Search" resultMap="productSelectMap">
@@ -101,32 +115,41 @@
         <include refid="where-clause"/>
     </select>
 
+	<!-- Select FileList -->    
+	<select id="getProductFileList" parameterType="int" resultMap="productFileSelectMap">
+	  SELECT file_no, prod_no, file_name
+	  FROM product_file
+	  WHERE prod_no = #{prodNo}
+	  ORDER BY file_no ASC
+	</select>
+	
+	<!-- 단건 조회: 삭제 전에 물리파일 이름 알아내기 위함 -->
+	<select id="getProductFile" parameterType="int" resultType="com.model2.mvc.service.domain.ProductFile">
+	  SELECT file_no AS fileNo, prod_no AS prodNo, file_name AS fileName
+	  FROM product_file
+	  WHERE file_no = #{fileNo}
+	</select>
+
     <!-- Update -->
-<update id="updateProduct" parameterType="com.model2.mvc.service.domain.Product">
-  UPDATE product
-     SET prod_name = #{prodName, jdbcType=VARCHAR},
-         price     = #{price, jdbcType=INTEGER},
-
-         manufacture_day =
-           <choose>
-             <when test="manuDate != null and manuDate != ''">
-               TO_DATE(#{manuDate, jdbcType=VARCHAR}, 'YYYYMMDD')
-             </when>
-             <otherwise>
-               manufacture_day   <!-- 값이 없으면 기존 값 유지 -->
-             </otherwise>
-           </choose>,
-
-         image_file =
-           <choose>
-             <when test="fileName != null and fileName != ''">
-               #{fileName, jdbcType=VARCHAR}
-             </when>
-             <otherwise>image_file</otherwise>
-           </choose>,
-
-         prod_detail = #{prodDetail, jdbcType=VARCHAR}
-   WHERE prod_no = #{prodNo, jdbcType=INTEGER}
-</update>
+	<update id="updateProduct" parameterType="com.model2.mvc.service.domain.Product">
+	  UPDATE product
+	     SET prod_name = #{prodName, jdbcType=VARCHAR},
+	         price     = #{price, jdbcType=INTEGER},
+	         manufacture_day =
+	           <choose>
+	             <when test="manuDate != null and manuDate != ''">
+	               TO_DATE(#{manuDate, jdbcType=VARCHAR}, 'YYYYMMDD')
+	             </when>
+	             <otherwise>manufacture_day</otherwise>
+	           </choose>,
+	         prod_detail = #{prodDetail, jdbcType=VARCHAR}
+	   WHERE prod_no = #{prodNo, jdbcType=INTEGER}
+	</update>
+	
+	<!-- 파일 삭제 -->
+	<delete id="deleteProductFile" parameterType="int">
+	  DELETE FROM product_file
+	  WHERE file_no = #{fileNo}
+	</delete>
 
 </mapper>

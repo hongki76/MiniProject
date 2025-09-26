@@ -71,29 +71,31 @@
   <!-- 리스트 -->
   <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:10px;">
     <tr>
-      <td colspan="9">전체 ${resultPage.totalCount} 건수, 현재 ${resultPage.currentPage} 페이지</td>
+      <td colspan="11">전체 ${resultPage.totalCount} 건수, 현재 ${resultPage.currentPage} 페이지</td>
     </tr>
     <tr>
       <td class="ct_list_b" width="100">No</td>
       <td class="ct_line02"></td>
-      <td class="ct_list_b" width="150">상품명</td>
+      <td class="ct_list_b" width="250">상품명</td>
       <td class="ct_line02"></td>
       <td class="ct_list_b" width="150">가격</td>
       <td class="ct_line02"></td>
-      <td class="ct_list_b">등록일</td>
+      <td class="ct_list_b" width="120">등록일</td>
       <td class="ct_line02"></td>
-      <td class="ct_list_b" width="120">현재상태</td>
+      <td class="ct_list_b" width="150">현재상태</td>
+      <td class="ct_line02"></td>
+      <td class="ct_list_b"></td>
     </tr>
-    <tr><td colspan="9" bgcolor="808285" height="1"></td></tr>
+    <tr><td colspan="11" bgcolor="808285" height="1"></td></tr>
 
     <c:forEach var="product" items="${list}" varStatus="loop">
       <tr class="ct_list_pop">
-        <td align="center">
+        <td align="center"> <!-- No -->
           ${resultPage.totalCount - ((resultPage.currentPage-1) * resultPage.pageSize) - loop.index}
         </td>
         <td></td>
 
-        <td align="left">
+        <td align="left"> <!-- 상품명 -->
           <form action="/product/getProduct" method="post" style="display:inline;">
             <input type="hidden" name="prodNo" value="${product.prodNo}" />
             <button type="submit" class="a-like">${product.prodName}</button>
@@ -101,12 +103,12 @@
         </td>
 
         <td></td>
-        <td align="left">${product.price}</td>
+        <td align="right">${product.price}</td> <!-- 가격 -->
         <td></td>
-        <td align="left">${product.manuDate}</td>
+        <td align="center">${product.manuDate}</td> <!-- 등록일 -->
         <td></td>
 
-        <td align="center">
+        <td align="center"> <!-- 현재상태 -->
           <c:choose>
             <c:when test="${not empty user and user.role eq 'admin' and product.proTranCode eq '1'}">
               ${product.proTranState}
@@ -117,8 +119,12 @@
             </c:otherwise>
           </c:choose>
         </td>
+
+        <td></td>
+        <td></td>
+        
       </tr>
-      <tr><td colspan="9" bgcolor="D6D7D6" height="1"></td></tr>
+      <tr><td colspan="11" bgcolor="D6D7D6" height="1"></td></tr>
     </c:forEach>
   </table>
 

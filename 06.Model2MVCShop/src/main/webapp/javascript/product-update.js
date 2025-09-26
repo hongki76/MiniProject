@@ -1,131 +1,169 @@
 // /javascript/product-update.js
-// - updateProduct.jsp 전용: 수정/취소/달력 오픈, 검증, 이미지 미리보기
-
 (function (global, $) {
   "use strict";
 
+  /* ===== 공통 유틸 ===== */
+  function fmtBytes(n) {
+    if (n == null) return "0 B";
+    var u = ["B","KB","MB","GB"], i = 0;
+    while (n >= 1024 && i < u.length-1) { n /= 1024; i++; }
+    return (Math.round(n*10)/10) + " " + u[i];
+  }
+  function isImage(f) { return /^image\//i.test(f.type); }
+
+  function dtSupported() {
+    try { return typeof DataTransfer !== "undefined" && new DataTransfer(); }
+    catch (e) { return false; }
+  }
+
+  function rebuildFileList($input, keep) {
+    var input = $input.get(0);
+    if (!dtSupported()) { input.value = ""; return; }
+    var dt = new DataTransfer();
+    var fs = input.files;
+    keep.forEach(function (i) { if (fs[i]) dt.items.add(fs[i]); });
+    input.files = dt.files;
+  }
+
+  /* ===== 제출/취소 ===== */
   function doSubmit() {
     var $form = $("#detailForm");
-    if ($form.length === 0) return;
+    if (!$form.length) return;
+    if (global.FormValidation && !global.FormValidation($form.get(0))) return;
 
-    // 공통 검증 (있을 때만)
-    if (global.FormValidation && !global.FormValidation($form.get(0))) {
-      return;
-    }
-
-    // 가격 숫자만
     var price = $.trim($("#price").val() || "");
     if (!/^[0-9]+$/.test(price)) {
-      alert("가격은 숫자만 입력하세요.");
-      $("#price").focus();
-      return;
+      alert("가격은 숫자만 입력하세요."); $("#price").focus(); return;
     }
-
+    $("#btnUpdate").prop("disabled", true);
     $form.trigger("submit");
   }
-
   function goBack() {
-    if (global.history && typeof global.history.back === "function") {
-      global.history.back();
-    } else {
-      global.location.href = (global.CONTEXT_PATH || "") + "/product/getProductList";
-    }
+    if (global.history && typeof global.history.back === "function") history.back();
+    else location.href = (global.CONTEXT_PATH || "") + "/product/getProductList";
   }
 
-  $(function () {
-    // ===== 수정 / 취소 =====
-    $(document).on("click", "#btnUpdate", function (e) {
-      e.preventDefault();
-      doSubmit();
-    });
-
-    $(document).on("click", "#btnCancel", function (e) {
-      e.preventDefault();
-      goBack();
-    });
-
-    // ===== 달력 오픈 (calendar.js 그대로 사용) =====
+  /* ===== 달력 ===== */
+  function bindCalendarOpen() {
     $(document).on("click", ".open-calendar", function (e) {
       e.preventDefault();
-
-      var targetKey = $(this).data("target"); // 예: manuDate
+      var targetKey = $(this).data("target");
       if (!targetKey) return;
-
-      // input 찾기 (id 우선, 없으면 name)
       var $input = $("#" + targetKey);
-      if ($input.length === 0) $input = $("[name='" + targetKey + "']");
-      if ($input.length === 0) return;
+      if (!$input.length) $input = $("[name='" + targetKey + "']");
+      if (!$input.length) return;
 
-      // form name: data-form > input.closest(form).name > #detailForm.name > 기본
-      var $btn = $(this);
-      var formName =
-        $btn.data("form") ||
-        ($input.closest("form").attr("name")) ||
-        ($("#detailForm").attr("name")) ||
-        "detailForm";
-
-      // calendar.js 기대 형식: "document.form.field"
+      var formName = $(this).data("form") ||
+                     $input.closest("form").attr("name") ||
+                     $("#detailForm").attr("name") || "detailForm";
       var fieldToken = $input.attr("name") || targetKey;
       var ref = "document." + formName + "." + fieldToken;
 
-      // 현재 값 → 숫자만 추출 → YYYYMMDD, 아니면 빈 문자열(오늘 기준)
-      var raw  = ($input.val() || "").toString().trim();
+      var raw = ($input.val() || "").trim();
       var norm = raw.replace(/\D/g, "");
       if (norm.length !== 8) norm = "";
 
-      if (typeof global.show_calendar === "function") {
-        global.show_calendar(ref, norm);
-      }
+      if (typeof global.show_calendar === "function") global.show_calendar(ref, norm);
+    });
+  }
+
+  /* ===== 새 첨부(멀티) 미리보기 ===== */
+  var $fileInput   = null;
+  var $previewGrid = null;
+  var $fileSummary = null;
+
+  function renderList() {
+    if (!$fileInput || !$fileInput.length) return;
+    var files = $fileInput.get(0).files;
+    if (!files || files.length === 0) {
+      if ($fileSummary) $fileSummary.hide().empty();
+      if ($previewGrid) $previewGrid.empty();
+      return;
+    }
+
+    var total = 0, nonImage = false;
+    Array.prototype.forEach.call(files, function (f) {
+      total += f.size; if (!isImage(f)) nonImage = true;
     });
 
-    // ===== 이미지 미리보기 =====
-    var $file = $("#uploadFile");
-    var $img  = $("#previewImg");
+    $fileSummary
+      .show()
+      .html("선택 " + files.length + "개 · 총 " + fmtBytes(total) +
+        (nonImage ? ' <span class="badge warn" style="margin-left:6px;">이미지 아닌 파일 포함</span>' : ""));
 
-    if ($file.length && $img.length) {
-      var originalSrc = $img.attr("data-original") || $img.attr("src");
+    $previewGrid.empty();
 
-      $file.on("change", function () {
-        var file = this.files && this.files[0];
+    Array.prototype.forEach.call(files, function (file, idx) {
+      var $card = $('<div class="file-card"></div>');
 
-        if (!file) {
-          // 선택 취소 → 원본 복원
-          $img.attr("src", originalSrc);
-          return;
+      // 썸네일: URL.createObjectURL ↔ FileReader fallback
+      if (isImage(file)) {
+        var $img = $('<img class="thumb" alt="">').attr("alt", file.name);
+        if (global.URL && typeof global.URL.createObjectURL === "function") {
+          var url = URL.createObjectURL(file);
+          $img.attr("src", url).on("load", function () {
+            try { URL.revokeObjectURL(url); } catch (e) {}
+          });
+        } else {
+          var reader = new FileReader();
+          reader.onload = function (ev) { $img.attr("src", ev.target.result); };
+          reader.readAsDataURL(file);
         }
+        $card.append($img);
+      } else {
+        $card.append('<div class="thumb-placeholder">미리보기 없음</div>');
+      }
 
-        // 이미지 타입만 허용
-        if (!/^image\//i.test(file.type)) {
-          alert("이미지 파일만 선택할 수 있습니다.");
-          this.value = "";
-          $img.attr("src", originalSrc);
-          return;
-        }
+      $card.append($('<div class="file-name"/>').text(file.name).attr("title", file.name));
 
-        // 용량 제한(옵션): 10MB
-        var maxBytes = 10 * 1024 * 1024;
-        if (file.size > maxBytes) {
-          alert("이미지 용량은 10MB 이하여야 합니다.");
-          this.value = "";
-          $img.attr("src", originalSrc);
-          return;
-        }
-
-        // 미리보기
-        var url = URL.createObjectURL(file);
-        $img.attr("src", url).one("load.previewOnce", function () {
-          try { URL.revokeObjectURL(url); } catch (e) {}
-          $img.off("load.previewOnce");
-        });
+      var $actions = $('<div class="file-actions"></div>');
+      var $badge = $('<span class="badge"></span>').text("#" + (idx + 1));
+      var $remove = $('<button type="button" class="btn-mini">제거</button>').on("click", function () {
+        var keep = [];
+        var len = $fileInput.get(0).files.length;
+        for (var i=0; i<len; i++) if (i !== idx) keep.push(i);
+        rebuildFileList($fileInput, keep);
+        renderList();
       });
+      $actions.append($badge, $remove);
+      $card.append($actions);
 
-      // (선택) 원본으로 복원 버튼이 있을 경우
-      $(document).on("click", "#btnResetPreview", function (e) {
-        e.preventDefault();
-        $img.attr("src", originalSrc);
-        $file.val("");
-      });
-    }
-	
-  }); 
+      $previewGrid.append($card);
+    });
+  }
+
+  function bindFiles() {
+    // 위임 바인딩: 동적으로 교체돼도 동작
+    $(document).on("change", "#productFile", function () {
+      $fileInput   = $("#productFile");
+      $previewGrid = $("#filePreview");
+      $fileSummary = $("#fileSummary");
+      renderList();
+    });
+
+    $(document).on("click", "#btnClearFiles", function () {
+      $fileInput = $("#productFile");
+      if (!$fileInput.length) return;
+      var input = $fileInput.get(0);
+      if (dtSupported()) {
+        var dt = new DataTransfer();
+        input.files = dt.files;
+      } else {
+        input.value = "";
+      }
+      $previewGrid = $("#filePreview");
+      $fileSummary = $("#fileSummary");
+      renderList();
+    });
+  }
+
+  /* ===== 초기화 ===== */
+  $(function () {
+    console.log("[product-update] init");
+    $(document).on("click", "#btnUpdate", function (e) { e.preventDefault(); doSubmit(); });
+    $(document).on("click", "#btnCancel", function (e) { e.preventDefault(); goBack(); });
+    bindCalendarOpen();
+    bindFiles();
+  });
+
 })(window, window.jQuery);

@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.model2.mvc.common.Page;
 import com.model2.mvc.common.Search;
 import com.model2.mvc.service.domain.Product;
+import com.model2.mvc.service.domain.ProductFile;
 import com.model2.mvc.service.domain.User;
 import com.model2.mvc.service.product.ProductService;
 
@@ -60,91 +61,140 @@ public class ProductController {
 	@RequestMapping(value="addProduct", method=RequestMethod.POST)
 	public String addProduct(
 	        @ModelAttribute Product product,
-	        @RequestParam(value="uploadFile", required=false) MultipartFile file,
+	        @RequestParam(value="productFile", required=false) MultipartFile[] productFiles,
 	        HttpServletRequest req) throws Exception {
 
-	    if (file != null && !file.isEmpty()) {
-	        String uploadDir = req.getServletContext().getRealPath("/upload");
-	        File dir = new File(uploadDir);
-	        if (!dir.exists()) dir.mkdirs();
-
-	        String original = file.getOriginalFilename();
-	        String ext = (original != null && original.lastIndexOf(".") != -1)
-	                   ? original.substring(original.lastIndexOf(".")) : "";
-	        String saved = java.util.UUID.randomUUID().toString().replace("-", "") + ext;
-	        file.transferTo(new java.io.File(dir, saved));
-
-	        product.setFileName(saved); // ✅ 여기서만 fileName 세팅
-	    }
-
-	    // 나머지 필드(prodName, price, manuDate, prodDetail...)는 @ModelAttribute로 바인딩
+		// 상품정보 DB 저장
 	    productService.addProduct(product);
+
+	    // 상품 파일명 DB 저장
+	    if (productFiles != null && productFiles.length > 0) {
+	        addProductFiles(product.getProdNo(), req, productFiles);
+	    }
+	    
 	    return "redirect:/product/getProductList";
 	}
 
+	private void addProductFiles(int prodNo,
+	                             HttpServletRequest req,
+	                             MultipartFile[]... fileGroups) throws Exception {
+
+	    // 0) 병합/평탄화
+	    java.util.List<MultipartFile> files = new java.util.ArrayList<>();
+	    if (fileGroups != null) {
+	        for (MultipartFile[] grp : fileGroups) {
+	            if (grp == null) continue;
+	            for (MultipartFile f : grp) {
+	                if (f != null && !f.isEmpty()) files.add(f);
+	            }
+	        }
+	    }
+	    if (files.isEmpty()) return;
+
+	    // 1) 저장 경로 준비
+	    String uploadDir = req.getServletContext().getRealPath("/upload");
+	    File dir = new File(uploadDir);
+	    if (!dir.exists()) dir.mkdirs();
+
+	    // (선택) 제한/필터 — 필요 없으면 제거
+	    final int MAX_COUNT = 100;        // 최대 개수
+	    final long MAX_SIZE = 50L * 1024 * 1024; // 총 50MB
+	    long total = 0L;
+	    if (files.size() > MAX_COUNT) {
+	        throw new IllegalArgumentException("첨부파일은 최대 " + MAX_COUNT + "개까지 가능합니다.");
+	    }
+
+	    // 2) 저장 + DB 등록
+	    for (MultipartFile f : files) {
+	        total += f.getSize();
+	        if (total > MAX_SIZE) {
+	            throw new IllegalArgumentException("첨부 총 용량이 " + (MAX_SIZE / (1024*1024)) + "MB를 초과했습니다.");
+	        }
+
+	        String original = f.getOriginalFilename();
+	        String ext = (original != null && original.lastIndexOf('.') != -1)
+	                   ? original.substring(original.lastIndexOf('.')) : "";
+	        String saved = java.util.UUID.randomUUID().toString().replace("-", "") + ext;
+
+	        f.transferTo(new File(dir, saved));
+
+	        // PRODUCT_FILE insert
+	        productService.addProductFile(prodNo, saved);
+	    }
+	}
 
     // ====== Read ======
-    @RequestMapping(value = "getProduct", method = RequestMethod.POST)
-    public String getProduct(@RequestParam("prodNo") int prodNo, Model model) throws Exception {   	
-    	Product product = productService.getProduct(prodNo);
-        model.addAttribute("product", product);
-        return "/product/getProduct.jsp";
-    }
+	@RequestMapping(value = "getProduct", method = RequestMethod.POST)
+	public String getProduct(@RequestParam("prodNo") int prodNo, Model model) throws Exception {
+	    Product product = productService.getProduct(prodNo);
+	    model.addAttribute("product", product);
 
-    // ====== UpdateView ======
-    @RequestMapping(value = "updateProductView", method = { RequestMethod.GET, RequestMethod.POST })
-    public String updateProductView(@RequestParam("prodNo") int prodNo, Model model) throws Exception {
-        Product product = productService.getProduct(prodNo);
-        model.addAttribute("product", product);
-        return "/product/updateProduct.jsp";
-    }
+	    List<ProductFile> fileList = productService.getProductFileList(prodNo);
+	    model.addAttribute("fileList", fileList);
+	    return "/product/getProduct.jsp";
+	}
 
-    // ====== Update ======
-    @PostMapping(value = "updateProduct", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String updateProduct(@ModelAttribute("product") Product product,
-                                @RequestParam(value = "uploadFile", required = false) MultipartFile file,
-                                @RequestParam(value = "oldFileName", required = false) String oldFileName,
-                                HttpServletRequest request) throws Exception {
+	// ====== UpdateView ======
+	@RequestMapping(value = "updateProductView", method = { RequestMethod.GET, RequestMethod.POST })
+	public String updateProductView(@RequestParam("prodNo") int prodNo, Model model) throws Exception {
+	    // 1) 상품
+	    Product product = productService.getProduct(prodNo);
+	    model.addAttribute("product", product);
 
-        // 1) manuDate 정규화: 모든 구분자 제거 + YYMMDD → YYYYMMDD 확장 + 유효성 검증
-        product.setManuDate(normalizeYYYYMMDD(product.getManuDate()));
+	    // 2) 기존 첨부파일 목록
+	    java.util.List<com.model2.mvc.service.domain.ProductFile> fileList =
+	            productService.getProductFileList(prodNo);
+	    model.addAttribute("fileList", fileList);
 
-        // 2) 업로드 디렉터리 준비
-        String uploadDir = request.getServletContext().getRealPath("/upload");
-        File dir = new File(uploadDir);
-        if (!dir.exists()) dir.mkdirs();
+	    // 3) 뷰
+	    return "/product/updateProduct.jsp";
+	}
 
-        // 3) 새 파일 저장
-        if (file != null && !file.isEmpty()) {
-            String original = file.getOriginalFilename();
-            String ext = (original != null && original.lastIndexOf(".") != -1)
-                       ? original.substring(original.lastIndexOf(".")) : "";
-            String saved = java.util.UUID.randomUUID().toString().replace("-", "") + ext;
-            file.transferTo(new File(dir, saved));
-            product.setFileName(saved);
 
-            if (oldFileName != null && !oldFileName.isEmpty() && !oldFileName.equals(saved)) {
-                File old = new File(dir, oldFileName);
-                if (old.isFile()) try { old.delete(); } catch (Exception ignore) {}
-            }
-        } else {
-            // 4) 새 파일 없으면 기존 유지
-            if (product.getFileName() == null || product.getFileName().isEmpty()) {
-                if (oldFileName != null && !oldFileName.isEmpty()) {
-                    product.setFileName(oldFileName);
-                } else {
-                    Product db = productService.getProduct(product.getProdNo());
-                    if (db != null) product.setFileName(db.getFileName());
-                }
-            }
-        }
+	// ====== Update ======
+	@PostMapping(value = "updateProduct", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+	public String updateProduct(@ModelAttribute("product") Product product,
+	                            @RequestParam(value = "productFile", required = false) MultipartFile[] productFiles, // ✅ 새 첨부(복수)
+	                            @RequestParam(value = "deleteFileNo", required = false) Integer[] deleteFileNo,       // ✅ 기존 첨부 삭제 체크
+	                            HttpServletRequest request) throws Exception {
 
-        // 5) 업데이트
-        productService.updateProduct(product);
+	    // 1) manuDate 정규화
+	    product.setManuDate(normalizeYYYYMMDD(product.getManuDate()));
 
-        // 6) 상세로
-        return "forward:/product/getProduct";
-    }
+	    // 2) 상품 기본정보 업데이트(대표이미지 개념 없음)
+	    productService.updateProduct(product);
+
+	    // 3) 기존 첨부 삭제
+	    if (deleteFileNo != null && deleteFileNo.length > 0) {
+	        String uploadDir = request.getServletContext().getRealPath("/upload");
+	        java.io.File dir = new java.io.File(uploadDir);
+	        if (!dir.exists()) dir.mkdirs();
+
+	        for (Integer fileNo : deleteFileNo) {
+	            if (fileNo == null) continue;
+
+	            // 파일명 조회
+	            com.model2.mvc.service.domain.ProductFile pf = productService.getProductFile(fileNo);
+	            if (pf != null) {
+	                // 물리파일 삭제(있으면)
+	                if (pf.getFileName() != null && !pf.getFileName().isEmpty()) {
+	                    java.io.File disk = new java.io.File(dir, pf.getFileName());
+	                    if (disk.isFile()) try { disk.delete(); } catch (Exception ignore) {}
+	                }
+	                // DB 삭제
+	                productService.deleteProductFile(fileNo);
+	            }
+	        }
+	    }
+
+	    // 4) 새 첨부 추가(멀티)
+	    if (productFiles != null && productFiles.length > 0) {
+	        addProductFiles(product.getProdNo(), request, productFiles); // ✅ 이전에 만든 varargs 헬퍼 사용
+	    }
+
+	    // 5) 상세보기로
+	    return "forward:/product/getProduct";
+	}
 
     /**
      * 입력 문자열을 YYYYMMDD로 정규화한다.
@@ -179,7 +229,6 @@ public class ProductController {
             return null; // 잘못된 날짜 → 컬럼 유지
         }
     }
-
 
     // ====== List ======
     @RequestMapping(value = "getProductList", method = { RequestMethod.GET, RequestMethod.POST })

@@ -1,10 +1,10 @@
 package com.model2.mvc.service.product;
 
 import java.util.List;
-import java.util.Map;
 
 import com.model2.mvc.common.Search;
 import com.model2.mvc.service.domain.Product;
+import com.model2.mvc.service.domain.ProductFile;
 
 public interface ProductDao {
 
@@ -17,4 +17,12 @@ public interface ProductDao {
     public int getTotalCount(Search search) throws Exception;
 
     public void updateProduct(Product product) throws Exception;
+    
+    public  void addProductFile(ProductFile productFile) throws Exception;
+
+    public List<ProductFile> getProductFileList(int prodNo) throws Exception;
+    
+    void deleteProductFile(int fileNo) throws Exception;
+    
+    ProductFile getProductFile(int fileNo) throws Exception;
 }
