@@ -228,7 +228,7 @@
 </table>
 
 <!-- 스크립트 로드 -->
-<script src="/javascript/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/javascript/product-get.js"></script>
 </body>
 </html>

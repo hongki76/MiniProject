@@ -112,7 +112,7 @@
 </div>
 
 <!-- 스크립트: 인라인 제거, 외부로 -->
-<script src="/javascript/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/javascript/purchase-list.js"></script>
 </body>
 </html>

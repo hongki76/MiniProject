@@ -149,7 +149,7 @@
 </c:choose>
 
 <!-- 외부 스크립트 -->
-<script src="/javascript/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/javascript/purchase-get.js"></script>
 </body>
 </html>

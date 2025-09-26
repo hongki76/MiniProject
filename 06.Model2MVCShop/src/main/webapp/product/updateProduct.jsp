@@ -238,7 +238,7 @@
 </form>
 
 <!-- 스크립트 로드 (하단) -->
-<script src="${cPath}/javascript/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="${cPath}/javascript/CommonScript-jq.js"></script>
 <script src="${cPath}/javascript/calendar.js"></script>
 <script src="${cPath}/javascript/product-update.js"></script>

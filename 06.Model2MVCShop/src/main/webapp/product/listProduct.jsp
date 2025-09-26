@@ -140,8 +140,7 @@
 </div>
 
 <!-- 스크립트: 하단에 외부 파일로만 로드 -->
-<script src="/javascript/jquery-3.7.1.min.js"></script>
-<!-- (선택) 공통 검증 사용 시 -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/javascript/CommonScript-jq.js"></script>
 <script src="/javascript/product-list.js"></script>
 </body>

@@ -205,7 +205,7 @@
 </form>
 
 <!-- 스크립트 -->
-<script src="/javascript/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/javascript/CommonScript-jq.js"></script>
 <script src="/javascript/calendar.js"></script>
 <script src="/javascript/product-add.js"></script>
