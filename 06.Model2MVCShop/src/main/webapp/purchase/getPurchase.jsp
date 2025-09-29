@@ -135,17 +135,14 @@
             
               <td width="80">
 				<c:if test="${fn:trim(purchase.tranCode) == '0' or fn:trim(purchase.tranCode) == '1'}">
-				  <form method="post" action="${cPath}/purchase/cancelPurchase" style="display:inline;"
-				        onsubmit="return confirm('이 주문을 취소하시겠습니까?');">
-				    <input type="hidden" name="tranNo" value="${purchase.tranNo}" />
-				    <button type="submit" class="btn btn-danger">주문 취소</button>
-				  </form>
+				  <button type="button" class="btn btn-danger js-cancel-purchase" data-tran-no="${purchase.tranNo}">
+				    주문 취소
+				  </button>
 				</c:if>
               </td>
               
               <td width="17" height="23"><img src="/images/ct_btnbg01.gif" width="17" height="23"/></td>
               <td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
-                <!-- 인라인 JS 제거 → 버튼 + jQuery -->
                 <button type="button" id="btnOk" class="a-like">확인</button>
               </td>
               <td width="14" height="23"><img src="/images/ct_btnbg03.gif" width="14" height="23"/></td>
