@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.model2.mvc.common.Search;
 import com.model2.mvc.service.domain.Purchase;
@@ -56,5 +57,25 @@ public class PurchaseServiceImpl implements PurchaseService {
     @Override
     public String getTranCode(int prodNo) throws Exception {
         return purchaseDao.getTranCode(prodNo);
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelPurchase(int tranNo) throws Exception {
+        int status = purchaseDao.selectTranStatusCode(tranNo);
+
+        // 0(판매중), 1(구매완료)만 취소 허용
+        if (status != 0 && status != 1) {
+        	System.out.println("### PurchaseServiceImpl.cancelPurchase() - status(" + status + ")");
+            throw new IllegalStateException("현재 상태에서는 주문 취소가 불가합니다. (status=" + status + ")");
+        }
+
+        int deleted = purchaseDao.deleteByTranNo(tranNo);
+        if (deleted != 1) {
+        	System.out.println("### PurchaseServiceImpl.cancelPurchase() - deleted(" + deleted + ")");        	
+            throw new IllegalStateException("주문 취소 처리에 실패했습니다. 삭제된 행 수=" + deleted);
+        }
+        
+        System.out.println("### PurchaseServiceImpl.cancelPurchase() - deleted(" + deleted + ")");
     }
 }

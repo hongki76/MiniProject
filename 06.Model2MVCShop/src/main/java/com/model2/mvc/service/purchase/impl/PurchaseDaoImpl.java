@@ -51,16 +51,30 @@ public class PurchaseDaoImpl implements PurchaseDao {
         sqlSession.update("PurchaseMapper.updateTranCode", map);
     }
     
-	    @Override
-	    public int updateTranCodeByProduct(int prodNo, String tranStatusCode) throws Exception {
-	        Map<String,Object> map = new HashMap<>();
-	        map.put("prodNo", prodNo);
-	        map.put("tranStatusCode", tranStatusCode);
-	        return sqlSession.update("PurchaseMapper.updateTranCodeByProduct", map);
-	    }
+    @Override
+    public int updateTranCodeByProduct(int prodNo, String tranStatusCode) throws Exception {
+        Map<String,Object> map = new HashMap<>();
+        map.put("prodNo", prodNo);
+        map.put("tranStatusCode", tranStatusCode);
+        return sqlSession.update("PurchaseMapper.updateTranCodeByProduct", map);
+    }
 
     @Override
     public String getTranCode(int prodNo) throws Exception {
         return sqlSession.selectOne("PurchaseMapper.getTranCode", prodNo);
+    }
+    
+    @Override
+    public int selectTranStatusCode(int tranNo) throws Exception {
+        Integer code = sqlSession.selectOne("PurchaseMapper.selectTranStatusCode", tranNo);
+        if (code == null) {
+            throw new IllegalArgumentException("구매내역을 찾을 수 없습니다. tranNo=" + tranNo);
+        }
+        return code;
+    }
+
+    @Override
+    public int deleteByTranNo(int tranNo) throws Exception {
+        return sqlSession.delete("PurchaseMapper.deleteByTranNo", tranNo);
     }
 }

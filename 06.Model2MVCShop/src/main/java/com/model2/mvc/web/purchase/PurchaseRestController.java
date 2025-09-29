@@ -174,6 +174,24 @@ public class PurchaseRestController {
         res.put("updatedRows", rows);
         return res;
     }
+    
+    @PostMapping("json/cancelPurchase")
+    public Map<String, Object> cancelPurchase(@RequestParam int tranNo) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+        	System.out.println("PurchaseRestController.cancelPurchase() - tranNo(" + ")");
+            purchaseService.cancelPurchase(tranNo);
+            res.put("success", true);
+            res.put("message", "주문이 취소되었습니다.");
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", "오류가 발생했습니다.");
+        }
+        return res;
+    }
 
     // ===== Helpers =====
     private String resolveTranState(int tranCode) {

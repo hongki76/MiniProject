@@ -139,4 +139,17 @@
      WHERE prod_no = #{prodNo, jdbcType=NUMERIC}
   </update>
 
+  <!-- 상태코드 조회: 0(판매중), 1(구매완료), 2(배송중), 3(배송완료) -->
+  <select id="selectTranStatusCode" parameterType="int" resultType="int">
+    SELECT tran_status_code
+    FROM transaction
+    WHERE tran_no = #{tranNo}
+  </select>
+
+  <!-- 구매 레코드 삭제 -->
+  <delete id="deleteByTranNo" parameterType="int">
+    DELETE FROM transaction
+    WHERE tran_no = #{tranNo}
+  </delete>
+
 </mapper>
