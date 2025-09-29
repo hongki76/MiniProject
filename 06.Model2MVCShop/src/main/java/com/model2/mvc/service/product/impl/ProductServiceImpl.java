@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.model2.mvc.common.Search;
 import com.model2.mvc.service.domain.Product;
+import com.model2.mvc.service.domain.ProductFile;
 import com.model2.mvc.service.product.ProductDao;
 import com.model2.mvc.service.product.ProductService;
 
@@ -43,4 +44,27 @@ public class ProductServiceImpl implements ProductService {
     public void updateProduct(Product product) throws Exception {
         productDao.updateProduct(product);
     }
+
+    @Override
+    public  void addProductFile(int prodNo, String fileName) throws Exception {
+        ProductFile productFile = new ProductFile();
+        productFile.setProdNo(prodNo);
+        productFile.setFileName(fileName);
+        productDao.addProductFile(productFile);
+    }
+
+    @Override
+    public List<ProductFile> getProductFileList(int prodNo) throws Exception {
+        return productDao.getProductFileList(prodNo);
+    }
+    
+    @Override
+    public void deleteProductFile(int fileNo) throws Exception {
+        productDao.deleteProductFile(fileNo);
+    }
+    @Override
+    public ProductFile getProductFile(int fileNo) throws Exception {
+        return productDao.getProductFile(fileNo);
+    }
+
 }

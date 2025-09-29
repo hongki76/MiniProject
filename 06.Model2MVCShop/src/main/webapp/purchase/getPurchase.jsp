@@ -7,6 +7,9 @@
 <head>
   <title>구매상세조회</title>
   <link rel="stylesheet" href="/css/admin.css" type="text/css">
+  <style>
+    .a-like { cursor:pointer; text-decoration:underline; color:#06c; background:none; border:0; padding:0; font:inherit; }
+  </style>
 </head>
 
 <body bgcolor="#ffffff" text="#000000">
@@ -98,12 +101,12 @@
         <td width="104" class="ct_write">배송희망일</td>
         <td bgcolor="D6D6D6" width="1"></td>
         <td class="ct_write01">
-			<c:choose>
-			  <c:when test="${not empty purchase.dlvyDate}">
-			        <fmt:parseDate value="${purchase.dlvyDate}" pattern="yyyy-MM-dd HH:mm:ss" var="__d" />
-			        <fmt:formatDate value="${__d}" pattern="yyyy-MM-dd" />
-			  </c:when>
-			</c:choose>
+          <c:choose>
+            <c:when test="${not empty purchase.dlvyDate}">
+              <fmt:parseDate value="${purchase.dlvyDate}" pattern="yyyy-MM-dd HH:mm:ss" var="__d" />
+              <fmt:formatDate value="${__d}" pattern="yyyy-MM-dd" />
+            </c:when>
+          </c:choose>
         </td>
       </tr>
       <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
@@ -129,7 +132,7 @@
         <td align="right">
           <table border="0" cellspacing="0" cellpadding="0">
             <tr>
-
+            
               <td width="80">
 				<c:if test="${fn:trim(purchase.tranCode) == '0' or fn:trim(purchase.tranCode) == '1'}">
 				  <form method="post" action="${cPath}/purchase/cancelPurchase" style="display:inline;"
@@ -139,13 +142,14 @@
 				  </form>
 				</c:if>
               </td>
-
+              
               <td width="17" height="23"><img src="/images/ct_btnbg01.gif" width="17" height="23"/></td>
               <td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
-                <a href="javascript:history.go(-1);">확인</a>
+                <!-- 인라인 JS 제거 → 버튼 + jQuery -->
+                <button type="button" id="btnOk" class="a-like">확인</button>
               </td>
               <td width="14" height="23"><img src="/images/ct_btnbg03.gif" width="14" height="23"/></td>
-            </tr>            
+            </tr>
           </table>
         </td>
       </tr>
@@ -154,5 +158,8 @@
   </c:otherwise>
 </c:choose>
 
+<!-- 외부 스크립트 -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="/javascript/purchase-get.js"></script>
 </body>
 </html>

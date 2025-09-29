@@ -1,25 +1,27 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn"  uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <html>
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" href="/css/admin.css" type="text/css">
   <title>상품 구매</title>
-  <script type="text/javascript" src="../javascript/calendar.js"></script>
-  <script type="text/javascript">
-    function fncAddPurchase() { document.addPurchase.submit(); }
-  </script>
+  <style>
+    .a-like{ cursor:pointer; text-decoration:underline; color:#06c; background:none; border:0; padding:0; font:inherit; }
+    .icon-btn{ background:none; border:0; padding:0; margin:0; cursor:pointer; }
+  </style>
 </head>
 
 <body>
 
-<form name="addPurchase" method="post" action="/purchase/addPurchase">
+<form name="addPurchase" id="addPurchase" method="post" action="/purchase/addPurchase">
 
   <!-- 히든값 -->
   <input type="hidden" name="prodNo"  value="${product.prodNo}" />
 
+  <!-- 상단 타이틀 바 -->
   <table width="100%" height="37" border="0" cellpadding="0" cellspacing="0">
     <tr>
       <td width="15"><img src="/images/ct_ttl_img01.gif" width="15" height="37" /></td>
@@ -35,6 +37,7 @@
     </tr>
   </table>
 
+  <!-- 본문 -->
   <table width="600" border="0" cellspacing="0" cellpadding="0" align="center" style="margin-top:13px;">
     <tr><td colspan="3" bgcolor="#D6D6D6" height="1"></td></tr>
     <tr>
@@ -55,11 +58,58 @@
       <td class="ct_write01">${product.prodDetail}</td>
     </tr>
     <tr><td colspan="3" bgcolor="#D6D6D6" height="1"></td></tr>
+
     <tr>
       <td class="ct_write">제조일자</td>
       <td bgcolor="#D6D6D6"></td>
-      <td class="ct_write01">${product.manuDate}</td>
+      <td class="ct_write01">
+        <c:if test="${not empty product.manuDate}">
+          <c:set var="md" value="${product.manuDate}" />
+          <%-- 구분자 제거( -, /, ., 공백 ) → 숫자만 남김 --%>
+          <c:set var="digits" value="${fn:replace(md,'-','')}" />
+          <c:set var="digits" value="${fn:replace(digits,'/','')}" />
+          <c:set var="digits" value="${fn:replace(digits,'.','')}" />
+          <c:set var="digits" value="${fn:replace(digits,' ','')}" />
+
+          <c:choose>
+            <%-- 8자리: YYYYMMDD (예: 2025/09/01, 2025-09-01, 20250901) --%>
+            <c:when test="${fn:length(digits) == 8}">
+              ${fn:substring(digits,0,4)}-${fn:substring(digits,4,6)}-${fn:substring(digits,6,8)}
+            </c:when>
+
+            <%-- 6자리: YYMMDD (예: 25/09/01, 250901) → 세기 보정 --%>
+            <c:when test="${fn:length(digits) == 6}">
+              <c:set var="yy" value="${fn:substring(digits,0,2)}" />
+              <fmt:parseNumber var="yyNum" value="${yy}" integerOnly="true" />
+              <c:choose>
+                <c:when test="${yyNum le 69}">
+                  <c:set var="year4" value="${'20'}${yy}" />
+                </c:when>
+                <c:otherwise>
+                  <c:set var="year4" value="${'19'}${yy}" />
+                </c:otherwise>
+              </c:choose>
+              <c:set var="mm" value="${fn:substring(digits,2,4)}" />
+              <c:set var="dd" value="${fn:substring(digits,4,6)}" />
+              ${year4}-${mm}-${dd}
+            </c:when>
+
+            <%-- 그 외: 'YYYY-MM-DD ...'이면 앞 10자만 출력 --%>
+            <c:otherwise>
+              <c:choose>
+                <c:when test="${fn:length(md) >= 10 && fn:substring(md,4,5) == '-'}">
+                  ${fn:substring(md,0,10)}
+                </c:when>
+                <c:otherwise>
+                  ${md}
+                </c:otherwise>
+              </c:choose>
+            </c:otherwise>
+          </c:choose>
+        </c:if>
+      </td>
     </tr>
+
     <tr><td colspan="3" bgcolor="#D6D6D6" height="1"></td></tr>
     <tr>
       <td class="ct_write">가격</td>
@@ -73,22 +123,8 @@
       <td class="ct_write">등록일자</td>
       <td bgcolor="#D6D6D6"></td>
       <td class="ct_write01">
-        <!-- 1차: Date/Timestamp이면 바로 포맷 -->
-        <c:catch var="fmtErr">
-          <fmt:formatDate value="${product.regDate}" pattern="yyyy-MM-dd HH:mm" />
-        </c:catch>
-
-        <!-- 2차: String("yyyy-MM-dd HH:mm:ss.S")이면 파싱 후 포맷 -->
-        <c:if test="${not empty fmtErr}">
-          <c:catch var="parseErr">
-            <fmt:parseDate value="${product.regDate}" var="regDt" pattern="yyyy-MM-dd HH:mm:ss.S" />
-            <fmt:formatDate value="${regDt}" pattern="yyyy-MM-dd HH:mm" />
-          </c:catch>
-
-          <!-- 3차: 그래도 실패하면 원문 출력 -->
-          <c:if test="${not empty parseErr}">
-            ${product.regDate}
-          </c:if>
+        <c:if test="${not empty product.regDate}">
+          <fmt:formatDate value="${product.regDate}" pattern="yyyy-MM-dd" />
         </c:if>
       </td>
     </tr>
@@ -114,7 +150,9 @@
       <td class="ct_write">구매자이름</td>
       <td bgcolor="#D6D6D6"></td>
       <td class="ct_write01">
-      	<input type="text" name="receiverName" value="<c:out value='${sessionScope.user.userName}'/>" class="ct_input_g" style="width:100px;">      
+        <input type="text" name="receiverName"
+               value="<c:out value='${sessionScope.user.userName}'/>"
+               class="ct_input_g" style="width:100px;">
       </td>
     </tr>
     <tr><td colspan="3" bgcolor="#D6D6D6" height="1"></td></tr>
@@ -122,7 +160,9 @@
       <td class="ct_write">구매자연락처</td>
       <td bgcolor="#D6D6D6"></td>
       <td class="ct_write01">
-      	<input type="text" name="receiverPhone" value="<c:out value='${sessionScope.user.phone}'/>" class="ct_input_g" style="width:100px;">
+        <input type="text" name="receiverPhone"
+               value="<c:out value='${sessionScope.user.phone}'/>"
+               class="ct_input_g" style="width:100px;">
       </td>
     </tr>
     <tr><td colspan="3" bgcolor="#D6D6D6" height="1"></td></tr>
@@ -130,7 +170,9 @@
       <td class="ct_write">구매자Email</td>
       <td bgcolor="#D6D6D6"></td>
       <td class="ct_write01">
-      	<input type="text" name="receiverEmail" value="<c:out value='${sessionScope.user.email}'/>" class="ct_input_g" style="width:100px;">
+        <input type="text" name="receiverEmail"
+               value="<c:out value='${sessionScope.user.email}'/>"
+               class="ct_input_g" style="width:100px;">
       </td>
     </tr>
     <tr><td colspan="3" bgcolor="#D6D6D6" height="1"></td></tr>
@@ -154,21 +196,22 @@
     <tr><td colspan="3" bgcolor="#D6D6D6" height="1"></td></tr>
   </table>
 
+  <!-- 하단 버튼 -->
   <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:10px;">
     <tr>
       <td align="center">
         <table border="0" cellspacing="0" cellpadding="0">
           <tr>
             <td><img src="/images/ct_btnbg01.gif" width="17" height="23" /></td>
-            <td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
-              <a href="javascript:fncAddPurchase();">구매</a>
-            </td>
+			<td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
+			  <button type="button" id="btnSubmit" class="a-like">구매</button>
+			</td>
             <td><img src="/images/ct_btnbg03.gif" width="14" height="23" /></td>
             <td width="30"></td>
             <td><img src="/images/ct_btnbg01.gif" width="17" height="23" /></td>
-            <td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
-              <a href="javascript:history.go(-1)">취소</a>
-            </td>
+			<td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
+			  <button type="button" id="btnCancel" class="a-like">취소</button>
+			</td>
             <td><img src="/images/ct_btnbg03.gif" width="14" height="23" /></td>
           </tr>
         </table>
@@ -177,6 +220,12 @@
   </table>
 
 </form>
+
+<!-- 스크립트 -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="/javascript/CommonScript-jq.js"></script>
+<script src="/javascript/calendar.js"></script>
+<script src="/javascript/purchase-add.js"></script>
 
 </body>
 </html>
