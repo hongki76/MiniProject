@@ -1,5 +1,5 @@
 // /javascript/product-list.js
-// - listProduct.jsp 전용 스크립트 (무한스크롤 + 자동완성)
+// - listProduct.jsp 전용 스크립트 (무한스크롤 + 자동완성 + Hover 미리보기)
 // - pageNavigator.jsp 호환 위해 전역 fncGetList는 초기화/재조회로 유지하되 실제 이동은 AJAX로 처리
 (function (global, $) {
   "use strict";
@@ -117,7 +117,10 @@
         '<td align="left">' +
           '<form action="/product/getProduct" method="post" style="display:inline;">' +
             '<input type="hidden" name="prodNo" value="' + product.prodNo + '"/>' +
-            '<button type="submit" class="a-like">' + escapeHtml(product.prodName) + '</button>' +
+            // ▼ Hover 미리보기용 클래스/데이터 속성
+            '<button type="submit" class="a-like prod-link" data-prodno="' + product.prodNo + '">' +
+              escapeHtml(product.prodName) +
+            '</button>' +
           '</form>' +
         '</td>' +
         '<td></td>' +
@@ -259,7 +262,7 @@
   }
 
   // =========================
-  // 8) 자동완성 (AutoComplete) 추가
+  // 8) 자동완성 (AutoComplete)
   // =========================
   (function autoCompleteModule() {
     var $kw   = $("#searchKeyword");
@@ -412,8 +415,181 @@
     });
   })();
 
+// =========================
+// 9) Hover 레이어 (상품 상세 미리보기)
+// =========================
+(function hoverPreview(){
+  var $layer = $('<div class="prod-hover-layer" role="dialog" aria-hidden="true" style="position:absolute; z-index:3000; min-width:280px; max-width:420px; background:#fff; border:1px solid #d9d9d9; box-shadow:0 8px 24px rgba(0,0,0,.12); border-radius:8px; padding:12px 14px; display:none; pointer-events:auto;"></div>').appendTo(document.body);
+  var cache = {};         // prodNo -> product json 캐시
+  var showTimer = null;   // hover 지연
+  var hideTimer = null;   // 레이어 자동 숨김 지연
+  var DELAY_SHOW = 160;   // ms
+  var DELAY_HIDE = 180;   // ms
+  var $currentTarget = null;
+
+  // 날짜 → YYYY-MM-DD
+  function formatYMD(v){
+    if (v == null) return '';
+    var s = String(v).trim();
+
+    // 13자리 epoch millis
+    if (/^\d{13}$/.test(s)) {
+      var d = new Date(Number(s));
+      if (!isNaN(d.getTime())) return [
+        d.getFullYear(),
+        String(d.getMonth()+1).padStart(2,'0'),
+        String(d.getDate()).padStart(2,'0')
+      ].join('-');
+    }
+
+    // 10자리 epoch (초 단위) 대응
+    if (/^\d{10}$/.test(s)) {
+      var d10 = new Date(Number(s)*1000);
+      if (!isNaN(d10.getTime())) return [
+        d10.getFullYear(),
+        String(d10.getMonth()+1).padStart(2,'0'),
+        String(d10.getDate()).padStart(2,'0')
+      ].join('-');
+    }
+
+    // 8자리 yyyymmdd
+    if (/^\d{8}$/.test(s)) {
+      return s.slice(0,4) + '-' + s.slice(4,6) + '-' + s.slice(6,8);
+    }
+
+    // 6자리 yymmdd (00–69 → 20xx, 70–99 → 19xx)
+    if (/^\d{6}$/.test(s)) {
+      var yy = parseInt(s.slice(0,2),10);
+      var yyyy = (yy <= 69 ? 2000 + yy : 1900 + yy);
+      return yyyy + '-' + s.slice(2,4) + '-' + s.slice(4,6);
+    }
+
+    // 섞인 구분자들 → 숫자만 추출 후 처리
+    var digits = s.replace(/\D/g,'');
+    if (digits.length === 8) {
+      return digits.slice(0,4)+'-'+digits.slice(4,6)+'-'+digits.slice(6,8);
+    }
+    if (digits.length === 6) {
+      var yy2 = parseInt(digits.slice(0,2),10);
+      var yyyy2 = (yy2 <= 69 ? 2000 + yy2 : 1900 + yy2);
+      return yyyy2 + '-' + digits.slice(2,4) + '-' + digits.slice(4,6);
+    }
+
+    // 마지막 시도: Date 파서
+    var d2 = new Date(s);
+    if (!isNaN(d2.getTime())) {
+      return [
+        d2.getFullYear(),
+        String(d2.getMonth()+1).padStart(2,'0'),
+        String(d2.getDate()).padStart(2,'0')
+      ].join('-');
+    }
+
+    return s; // 실패 시 원문
+  }
+
+  function fmtPriceLocal(v){
+    var n = Number(v || 0);
+    return isNaN(n) ? '' : n.toLocaleString();
+  }
+
+  function buildLayerHtml(p){
+    var html = '';
+    html += '<div class="ttl" style="font-weight:600; margin-bottom:6px;">' + escapeHtml(p.prodName || '') + '</div>';
+    html += '<div class="row" style="font-size:13px; line-height:1.4; margin:2px 0;">상품번호 : ' + (p.prodNo != null ? p.prodNo : '') + '</div>';
+    html += '<div class="row price" style="font-size:13px; line-height:1.4; margin:2px 0; font-weight:600;">가격 : ' + fmtPriceLocal(p.price) + ' 원</div>';
+    if (p.regDate)  html += '<div class="row" style="font-size:13px; line-height:1.4; margin:2px 0;">등록일 : ' + formatYMD(p.regDate) + '</div>';
+    if (p.manuDate) html += '<div class="row" style="font-size:13px; line-height:1.4; margin:2px 0;">제조일 : ' + formatYMD(p.manuDate) + '</div>';
+    if (p.proTranState) html += '<div class="row" style="font-size:13px; line-height:1.4; margin:2px 0;">상태 : ' + escapeHtml(p.proTranState) + '</div>';
+    if (p.prodDetail) html += '<div class="row" style="font-size:13px; line-height:1.4; margin:2px 0;">설명 : ' + escapeHtml(String(p.prodDetail)).slice(0,180) + '</div>';
+
+    html += '<div class="act" style="margin-top:8px; text-align:right;">' +
+              '<form action="/product/getProduct" method="post" style="display:inline;">' +
+                '<input type="hidden" name="prodNo" value="' + p.prodNo + '"/>' +
+                '<button type="submit" class="btn-like" style="cursor:pointer; text-decoration:underline; color:#0066cc; background:none; border:none; padding:0; font:inherit;">상세보기</button>' +
+              '</form>' +
+            '</div>';
+    return html;
+  }
+
+  function placeLayerNear($anchor){
+    var rect = $anchor[0].getBoundingClientRect();
+    var scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+    var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+    var top  = rect.bottom + scrollY + 6; // 우하단 기본
+    var left = rect.left   + scrollX;
+
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var lw = $layer.outerWidth();
+    var lh = $layer.outerHeight();
+
+    if (left + lw > scrollX + vw - 8) left = Math.max(8 + scrollX, rect.right + scrollX - lw);
+    if (top  + lh > scrollY + vh - 8) top  = Math.max(8 + scrollY, rect.top   + scrollY - lh - 6);
+
+    $layer.css({ top: top + 'px', left: left + 'px' });
+  }
+
+  function doShow($anchor, prodNo){
+    if ($currentTarget && $currentTarget[0] === $anchor[0] && $layer.is(':visible')) return;
+
+    var onData = function(p){
+      $layer.html(buildLayerHtml(p)).show().attr('aria-hidden','false');
+      placeLayerNear($anchor);
+      $currentTarget = $anchor;
+    };
+
+    if (cache[prodNo]){
+      onData(cache[prodNo]);
+      return;
+    }
+
+    $.ajax({
+      url: (cPath || '') + '/product/json/getProduct/' + encodeURIComponent(prodNo),
+      method: 'GET',
+      dataType: 'json'
+    }).done(function(p){
+      if (p && typeof p === 'object'){
+        cache[prodNo] = p;
+        onData(p);
+      }
+    });
+  }
+
+  function scheduleShow($anchor){
+    clearTimeout(showTimer);
+    clearTimeout(hideTimer);
+    var prodNo = $anchor.data('prodno');
+    if (!prodNo) return;
+    showTimer = setTimeout(function(){ doShow($anchor, prodNo); }, DELAY_SHOW);
+  }
+
+  function scheduleHide(){
+    clearTimeout(showTimer);
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(hideNow, DELAY_HIDE);
+  }
+
+  function hideNow(){
+    $layer.hide().attr('aria-hidden','true');
+    $currentTarget = null;
+  }
+
+  $(document).on('mouseenter', '.prod-link', function(){ scheduleShow($(this)); });
+  $(document).on('mouseleave', '.prod-link', function(){ scheduleHide(); });
+
+  $layer.on('mouseenter', function(){ clearTimeout(hideTimer); });
+  $layer.on('mouseleave', function(){ scheduleHide(); });
+
+  $(window).on('scroll resize', function(){
+    if ($layer.is(':visible')) hideNow();
+  });
+})();
+
+
   // =========================
-  // 9) 이벤트 바인딩
+  // 10) 이벤트 바인딩
   // =========================
   $(function () {
     // 폼 submit 자체는 막음 (무한스크롤 환경에서는 페이지 전환 금지)
@@ -447,10 +623,9 @@
   });
 
   // =========================
-  // 10) pageNavigator.jsp 호환 함수
+  // 11) pageNavigator.jsp 호환 함수
   // =========================
   global.fncGetList = function (currentPage, orderByPriceAsc) {
-    // 기존 페이지 네비 클릭 → AJAX 재조회로 전환
     if (orderByPriceAsc != null && orderByPriceAsc !== "") {
       $orderByPriceAsc.val(orderByPriceAsc);
     }

@@ -13,9 +13,33 @@
       cursor:pointer; text-decoration:underline; color:#0066cc;
       background:none; border:none; padding:0; font:inherit;
     }
+    
     /* 무한스크롤 가독성 향상 */
     .ct_list_pop td { padding: 50px 2px; }
     .ct_list_b { height: 28px; }
+    
+	/* 상품 hover 레이어 */
+	.prod-hover-layer{
+	  position: absolute;
+	  z-index: 3000;
+	  min-width: 280px;
+	  max-width: 420px;
+	  background: #fff;
+	  border: 1px solid #d9d9d9;
+	  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+	  border-radius: 8px;
+	  padding: 12px 14px;
+	  display: none;
+	  pointer-events: auto;
+	}
+	.prod-hover-layer .ttl{ font-weight: 600; margin-bottom: 6px; }
+	.prod-hover-layer .row{ font-size: 13px; line-height: 1.4; margin: 2px 0; }
+	.prod-hover-layer .price{ font-weight: 600; }
+	.prod-hover-layer .act{ margin-top: 8px; text-align: right; }
+	.prod-hover-layer .btn-like{
+	  cursor:pointer; text-decoration:underline; color:#0066cc;
+	  background:none; border:none; padding:0; font:inherit;
+	}
   </style>
 </head>
 
@@ -117,7 +141,9 @@
           <td align="left">
             <form action="/product/getProduct" method="post" style="display:inline;">
               <input type="hidden" name="prodNo" value="${product.prodNo}" />
-              <button type="submit" class="a-like">${product.prodName}</button>
+              <button type="submit" class="a-like prod-link" data-prodno="${product.prodNo}">
+  				${product.prodName}
+			  </button>
             </form>
           </td>
 
