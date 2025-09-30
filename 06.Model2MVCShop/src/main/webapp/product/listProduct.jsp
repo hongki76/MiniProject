@@ -37,21 +37,26 @@
     <input type="hidden" id="currentPage" name="currentPage"
            value="${empty resultPage.currentPage ? 1 : resultPage.currentPage}"/>
     <input type="hidden" id="orderByPriceAsc" name="orderByPriceAsc" value="${search.orderByPriceAsc}"/>
+    <input type="hidden" name="regDateKeyword" id="regDateKeyword" value="${search.regDateKeyword}"/>    
 
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:10px;">
       <tr>
         <td align="right">
           가격
-          <!-- 정렬: javascript: 제거, 버튼에 data-order만 부여 -->
+
           <button type="button" class="a-like sort-price" data-order="DESC" aria-label="가격 내림차순">↑</button>
           <button type="button" class="a-like sort-price" data-order="ASC"  aria-label="가격 오름차순">↓</button>
-          &nbsp;
-          <select name="searchCondition" class="ct_input_g" style="width:80px">
-            <option value="0" ${!empty search.searchCondition && search.searchCondition==0 ? "selected" : ""}>상품명</option>
-            <option value="1" ${!empty search.searchCondition && search.searchCondition==1 ? "selected" : ""}>상품가격</option>
-          </select>
-          <input type="text" name="searchKeyword" value="${! empty search.searchKeyword ? search.searchKeyword : ""}"
-                 class="ct_input_g" style="width:200px; height:19px" />
+			&nbsp;
+		  <select name="searchCondition" class="ct_input_g" style="width:100px" id="searchCondition">
+		    <option value="0" ${!empty search.searchCondition && search.searchCondition==0 ? "selected" : ""}>상품명</option>
+		    <option value="1" ${!empty search.searchCondition && search.searchCondition==1 ? "selected" : ""}>상품가격</option>
+		    <option value="2" ${!empty search.searchCondition && search.searchCondition==2 ? "selected" : ""}>등록일</option>
+		  </select>
+		
+		  <input type="text" name="searchKeyword" id="searchKeyword"
+		       value="${! empty search.searchKeyword ? search.searchKeyword : ""}"
+		       class="ct_input_g" style="width:200px; height:19px" />
+
           <input type="text" name="minPrice" value="${search.minPrice}" class="ct_input_g"
                style="width:100px; height:19px; text-align:right;" placeholder="최소금액" num="n" />
           ~
@@ -110,7 +115,7 @@
         <td></td>
         <td align="right">${product.price}</td> <!-- 가격 -->
         <td></td>
-        <td align="center">${product.manuDate}</td> <!-- 등록일 -->
+        <td align="center">${product.regDate}</td> <!-- 등록일 -->
         <td></td>
 
         <td align="center"> <!-- 현재상태 -->

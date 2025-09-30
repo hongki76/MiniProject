@@ -59,29 +59,40 @@
          WHERE p.prod_no = #{value}
     </select>
 
-    <!-- Dynamic WHERE for searchCondition/Keyword + pagination by rowNum -->
+    <!-- 검색 조건(Where) -->
 	<sql id="where-clause">
 	  <where>
+	
+	    <!-- 키워드 분기: 상품명 / 상품가격 -->
 	    <if test="searchCondition != null and searchKeyword != null and searchKeyword != ''">
 	      <choose>
 	        <when test="searchCondition == '0' or searchCondition == 0">
 	          AND LOWER(p.prod_name) LIKE '%' || LOWER(#{searchKeyword}) || '%'
 	        </when>
 	        <when test="searchCondition == '1' or searchCondition == 1">
-	          AND LOWER(p.price) LIKE '%' || LOWER(#{searchKeyword}) || '%'
+	          AND TO_CHAR(p.price) LIKE '%' || #{searchKeyword} || '%'
 	        </when>
+	        <!-- 날짜(2)는 여기서 분기하지 않음: 아래 regDateKeyword로 독립 처리 -->
 	      </choose>
 	    </if>
 	
-	    <!-- ▼ 가격 범위 조건 추가 -->
+	    <!-- ✅ 등록일 독립 필터 (구분자 제거 + 하루 범위) -->
+	    <if test="regDateKeyword != null and regDateKeyword != ''">
+	      AND p.reg_date &gt;= TO_DATE(REGEXP_REPLACE(#{regDateKeyword}, '[^0-9]', ''), 'YYYYMMDD')
+	      AND p.reg_date &lt;  TO_DATE(REGEXP_REPLACE(#{regDateKeyword}, '[^0-9]', ''), 'YYYYMMDD') + 1
+	    </if>
+	
+	    <!-- 가격 범위 -->
 	    <if test="minPrice != null">
 	      AND p.price &gt;= #{minPrice}
 	    </if>
 	    <if test="maxPrice != null">
 	      AND p.price &lt;= #{maxPrice}
 	    </if>
+	
 	  </where>
 	</sql>
+
     
     <!-- 가격순 정렬 -->
     <sql id="order-by-price">

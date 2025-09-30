@@ -21,6 +21,8 @@ public class Search {
     // ▼ 가격 범위
     private Integer minPrice; // null 허용
     private Integer maxPrice; // null 허용
+    
+    private String regDateKeyword; 
 	
 	///Constructor
 	public Search() {
@@ -99,5 +101,13 @@ public class Search {
 				+ searchCondition + ", searchKeyword=" + searchKeyword
 				+ ", pageSize=" + pageSize + ", endRowNum=" + endRowNum
 				+ ", startRowNum=" + startRowNum + "]";
+	}
+
+	public String getRegDateKeyword() {
+		return regDateKeyword;
+	}
+
+	public void setRegDateKeyword(String regDateKeyword) {
+		this.regDateKeyword = regDateKeyword;
 	}
 }

@@ -4,7 +4,6 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +28,6 @@ import com.model2.mvc.common.Page;
 import com.model2.mvc.common.Search;
 import com.model2.mvc.service.domain.Product;
 import com.model2.mvc.service.domain.ProductFile;
-import com.model2.mvc.service.domain.User;
 import com.model2.mvc.service.product.ProductService;
 
 // 상품관리 Controller
@@ -231,76 +229,52 @@ public class ProductController {
     }
 
     // ====== List ======
+ // ====== List ======
     @RequestMapping(value = "getProductList", method = { RequestMethod.GET, RequestMethod.POST })
     public String getProductList(
-            @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage,
-            @RequestParam(value = "searchCondition", required = false) String searchCondition,
-            @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
-            @RequestParam(value = "orderByPriceAsc", required = false) String orderByPriceAsc,
-            @RequestParam(value = "minPrice", required = false) Integer minPrice,
-            @RequestParam(value = "maxPrice", required = false) Integer maxPrice,
+            @ModelAttribute Search search,
             HttpSession session,
             Model model) throws Exception {
 
-        Search search = new Search();
-        search.setCurrentPage(currentPage);
-        search.setPageSize(pageSize);
-        search.setSearchCondition(searchCondition);
-        search.setSearchKeyword(searchKeyword);
-        search.setOrderByPriceAsc(orderByPriceAsc);
-        search.setMinPrice(minPrice);
-        search.setMaxPrice(maxPrice);
+        // ---- 기본값 보정 (최초 진입 등 파라미터 없을 때 0 방지) ----
+        if (search.getCurrentPage() < 1) {
+            search.setCurrentPage(1);
+        }
+        if (search.getPageSize() <= 0) {
+            search.setPageSize(pageSize); // @Value 주입된 기본 페이지 크기
+        }
 
+        // ---- 날짜 정규화 / 유지 ----
+        if ("2".equals(search.getSearchCondition())) {
+            // 등록일 조건: 입력 키워드를 YYYYMMDD로 정규화하고 그 값을 날짜 필터로 사용
+            String norm = normalizeYYYYMMDD(search.getSearchKeyword());
+            search.setSearchKeyword(norm);
+            search.setRegDateKeyword(norm);
+        } else {
+            // 다른 조건: 히든(regDateKeyword)로 넘어온 값을 정규화하여 유지(없으면 미적용)
+            String normHidden = normalizeYYYYMMDD(search.getRegDateKeyword());
+            search.setRegDateKeyword(normHidden);
+        }
+
+        // ---- 서비스 호출 ----
         Map<String, Object> map = productService.getProductList(search);
 
         @SuppressWarnings("unchecked")
         List<Product> list = (List<Product>) map.get("list");
 
-        Integer totalCount = (Integer) map.get("totalCount");
-        if (totalCount == null) {
-            Object alt = map.get("count");
-            totalCount = (alt instanceof Integer) ? (Integer) alt : 0;
-        }
+        int totalCount = map.get("totalCount") instanceof Integer
+                ? (Integer) map.get("totalCount")
+                : 0;
 
-        Map<Integer, String> tranStateMap = new HashMap<>();
-        if (list != null) {
-            for (Product p : list) {
-                int proTranCode = 0;
-                try {
-                    String t = p.getProTranCode();
-                    if (t != null) proTranCode = Integer.parseInt(t.trim());
-                } catch (Exception ignore) {}
-                String proTranState = resolveTranState(session, proTranCode);
-                tranStateMap.put(p.getProdNo(), proTranState);
-                p.setProTranState(proTranState);
-            }
-        }
+        // ---- 페이징 모델 ----
+        Page resultPage = new Page(search.getCurrentPage(), totalCount, pageUnit, search.getPageSize());
 
-        Page resultPage = new Page(currentPage, totalCount, pageUnit, pageSize);
-
+        // ---- 모델 바인딩 ----
         model.addAttribute("list", list);
-        model.addAttribute("tranStateMap", tranStateMap);
         model.addAttribute("resultPage", resultPage);
         model.addAttribute("search", search);
 
         return "/product/listProduct.jsp";
     }
 
-    // Helper Method
-    private String resolveTranState(HttpSession session, int proTranCode) {
-        User user = (User)session.getAttribute("user");
-
-        boolean isAdmin = (user != null && "admin".equalsIgnoreCase(user.getRole()));
-
-        if (isAdmin) {
-            switch (proTranCode) {
-                case 1:  return "구매완료";
-                case 2:  return "배송중";
-                case 3:  return "배송완료";
-                default: return "판매중"; // 0이거나 알 수 없는 코드 포함
-            }
-        } else {
-            return (proTranCode == 0) ? "판매중" : "재고 없음";
-        }
-    }
 }
