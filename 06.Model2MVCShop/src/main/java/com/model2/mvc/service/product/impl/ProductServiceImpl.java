@@ -62,9 +62,20 @@ public class ProductServiceImpl implements ProductService {
     public void deleteProductFile(int fileNo) throws Exception {
         productDao.deleteProductFile(fileNo);
     }
+    
     @Override
     public ProductFile getProductFile(int fileNo) throws Exception {
         return productDao.getProductFile(fileNo);
     }
+
+    @Override
+    public List<String> autoCompleteProductName(String prefix, int limit) throws Exception {
+    	return productDao.autoCompleteProductName(prefix, limit);
+	}
+
+    @Override
+    public List<String> autoCompleteRegDate(String prefixYYYYMMDD, int limit) throws Exception {
+    	return productDao.autoCompleteRegDate(prefixYYYYMMDD, limit);
+	}
 
 }

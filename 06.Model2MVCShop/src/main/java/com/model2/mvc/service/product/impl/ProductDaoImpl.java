@@ -1,6 +1,8 @@
 package com.model2.mvc.service.product.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,5 +64,35 @@ public class ProductDaoImpl implements ProductDao {
     @Override
     public ProductFile getProductFile(int fileNo) throws Exception {
         return sqlSession.selectOne("ProductMapper.getProductFile", fileNo);
+    }
+    
+    // =========================
+    // AutoComplete: 상품명
+    // =========================
+    @Override
+    public List<String> autoCompleteProductName(String prefix, int limit) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("keywordEsc", escapeLike(prefix)); // %/_/\ 이스케이프
+        param.put("limit",  limit);                  // 0 또는 음수 ⇒ 전부
+        return sqlSession.selectList("ProductMapper.autoCompleteProductName", param);
+    }
+
+    /** LIKE ESCAPE '\' 대비: %, _ , \ 를 이스케이프 */
+    private static String escapeLike(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("%",  "\\%")
+                .replace("_",  "\\_");
+    }
+
+    // =========================
+    // AutoComplete: 등록일
+    // =========================
+    @Override
+    public List<String> autoCompleteRegDate(String prefixYYYYMMDD, int limit) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("prefix", prefixYYYYMMDD);
+        param.put("limit",  limit);
+        return sqlSession.selectList("ProductMapper.autoCompleteRegDate", param);
     }
 }

@@ -171,4 +171,30 @@
 	  WHERE file_no = #{fileNo}
 	</delete>
 
+	<!-- 상품명 자동완성: 대소문자 무시 + 부분일치(+ 선택적 limit) -->
+	<select id="autoCompleteProductName" parameterType="map" resultType="string">
+	  SELECT prod_name
+	  FROM (
+	    SELECT DISTINCT prod_name
+	    FROM PRODUCT
+	    WHERE UPPER(prod_name) LIKE '%' || UPPER(#{keywordEsc}) || '%' ESCAPE '\'
+	    ORDER BY prod_name
+	  )
+	  <if test="limit != null and limit &gt; 0">
+	    WHERE ROWNUM &lt;= #{limit}
+	  </if>
+	</select>
+	
+	<!-- 등록일 자동완성: reg_date가 DATE 타입인 경우 -->
+	<select id="autoCompleteRegDate" parameterType="map" resultType="string">
+	  SELECT ymd
+	  FROM (
+	    SELECT DISTINCT TO_CHAR(reg_date, 'YYYYMMDD') AS ymd
+	    FROM PRODUCT
+	    WHERE TO_CHAR(reg_date, 'YYYYMMDD') LIKE #{prefix} || '%'
+	    ORDER BY ymd DESC
+	  )
+	  WHERE ROWNUM &lt;= #{limit}
+	</select>
+
 </mapper>
