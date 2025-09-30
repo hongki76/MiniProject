@@ -52,6 +52,11 @@
           </select>
           <input type="text" name="searchKeyword" value="${! empty search.searchKeyword ? search.searchKeyword : ""}"
                  class="ct_input_g" style="width:200px; height:19px" />
+          <input type="text" name="minPrice" value="${search.minPrice}" class="ct_input_g"
+               style="width:100px; height:19px; text-align:right;" placeholder="최소금액" num="n" />
+          ~
+          <input type="text" name="maxPrice" value="${search.maxPrice}" class="ct_input_g"
+               style="width:100px; height:19px; text-align:right;" placeholder="최대금액" num="n" />
         </td>
         <td align="right" width="70">
           <table border="0" cellspacing="0" cellpadding="0">

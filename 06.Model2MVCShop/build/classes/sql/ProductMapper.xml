@@ -60,20 +60,28 @@
     </select>
 
     <!-- Dynamic WHERE for searchCondition/Keyword + pagination by rowNum -->
-    <sql id="where-clause">
-        <where>
-            <if test="searchCondition != null and searchKeyword != null and searchKeyword != ''">
-                <choose>
-					<when test="searchCondition == '0' or searchCondition == 0">
-					  AND LOWER(p.prod_name) LIKE '%' || LOWER(#{searchKeyword}) || '%'
-					</when>
-					<when test="searchCondition == '1' or searchCondition == 1">
-					  AND LOWER(p.price) LIKE '%' || LOWER(#{searchKeyword}) || '%'
-					</when>
-                </choose>
-            </if>
-        </where>
-    </sql>
+	<sql id="where-clause">
+	  <where>
+	    <if test="searchCondition != null and searchKeyword != null and searchKeyword != ''">
+	      <choose>
+	        <when test="searchCondition == '0' or searchCondition == 0">
+	          AND LOWER(p.prod_name) LIKE '%' || LOWER(#{searchKeyword}) || '%'
+	        </when>
+	        <when test="searchCondition == '1' or searchCondition == 1">
+	          AND LOWER(p.price) LIKE '%' || LOWER(#{searchKeyword}) || '%'
+	        </when>
+	      </choose>
+	    </if>
+	
+	    <!-- ▼ 가격 범위 조건 추가 -->
+	    <if test="minPrice != null">
+	      AND p.price &gt;= #{minPrice}
+	    </if>
+	    <if test="maxPrice != null">
+	      AND p.price &lt;= #{maxPrice}
+	    </if>
+	  </where>
+	</sql>
     
     <!-- 가격순 정렬 -->
     <sql id="order-by-price">

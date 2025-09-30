@@ -234,19 +234,22 @@ public class ProductController {
     @RequestMapping(value = "getProductList", method = { RequestMethod.GET, RequestMethod.POST })
     public String getProductList(
             @RequestParam(value = "currentPage", required = false, defaultValue = "1") int currentPage,
-            @RequestParam(value = "searchCondition", required = false) String searchCondition, // 0:name, 1:detail
+            @RequestParam(value = "searchCondition", required = false) String searchCondition,
             @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
-            @RequestParam(value="orderByPriceAsc", required=false) String orderByPriceAsc,
+            @RequestParam(value = "orderByPriceAsc", required = false) String orderByPriceAsc,
+            @RequestParam(value = "minPrice", required = false) Integer minPrice,
+            @RequestParam(value = "maxPrice", required = false) Integer maxPrice,
             HttpSession session,
             Model model) throws Exception {
 
-        // Search 세팅
         Search search = new Search();
         search.setCurrentPage(currentPage);
         search.setPageSize(pageSize);
         search.setSearchCondition(searchCondition);
         search.setSearchKeyword(searchKeyword);
         search.setOrderByPriceAsc(orderByPriceAsc);
+        search.setMinPrice(minPrice);
+        search.setMaxPrice(maxPrice);
 
         Map<String, Object> map = productService.getProductList(search);
 
@@ -259,17 +262,14 @@ public class ProductController {
             totalCount = (alt instanceof Integer) ? (Integer) alt : 0;
         }
 
-        // tranState 맵에 담기
         Map<Integer, String> tranStateMap = new HashMap<>();
         if (list != null) {
             for (Product p : list) {
                 int proTranCode = 0;
-
                 try {
                     String t = p.getProTranCode();
                     if (t != null) proTranCode = Integer.parseInt(t.trim());
-                } catch (Exception ignore) { /* default 0 */ }
-
+                } catch (Exception ignore) {}
                 String proTranState = resolveTranState(session, proTranCode);
                 tranStateMap.put(p.getProdNo(), proTranState);
                 p.setProTranState(proTranState);
