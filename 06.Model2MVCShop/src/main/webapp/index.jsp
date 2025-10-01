@@ -9,7 +9,6 @@
   <title>HK Shop | Dark Mode</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <!-- Tailwind (개발용 CDN: 운영은 빌드된 CSS 권장) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -27,117 +26,15 @@
     }
   </script>
 
-  <!-- AOS -->
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
-  <!-- Font Awesome (아이콘) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 </head>
 
 <body class="min-h-screen text-dark-text bg-dark-bg transition-colors duration-500">
 
-  <!-- Header -->
-  <header class="w-full border-b border-gray-700 bg-dark-bg/80 backdrop-blur-md sticky top-0 z-50" data-aos="fade-down">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="flex h-16 items-center justify-between">
-        <a href="${cPath}/index.jsp" class="text-2xl font-extrabold tracking-tight text-white">
-          HK <span class="text-accent">Shop</span>
-        </a>
-
-        <!-- Desktop nav -->
-        <nav class="hidden md:flex items-center gap-2 text-sm font-medium">
-          <a href="${cPath}/product/getProductList" class="px-4 py-2 hover:text-accent transition-colors">PRODUCT</a>
-
-          <!-- DESKTOP: Orders dropdown (stable) -->
-          <c:if test="${not empty sessionScope.user && sessionScope.user.role == 'user'}">
-            <div id="orders-desktop" class="relative">
-              <!-- trigger -->
-              <a href="${cPath}/purchase/getPurchaseList"
-                 id="orders-trigger"
-                 class="inline-flex items-center gap-2 px-4 py-2 hover:text-accent transition-colors"
-                 aria-haspopup="true" aria-expanded="false">
-                ORDERS
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 0 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
-                </svg>
-              </a>
-              <!-- menu -->
-              <div id="orders-menu"
-                   class="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-48 rounded-md shadow-lg bg-dark-card ring-1 ring-black/50
-                          invisible opacity-0 translate-y-1 transition-all duration-150 z-50
-                          before:content-[''] before:absolute before:-top-2 before:left-0 before:right-0 before:h-3">
-                <!-- ↑ before 엘리먼트 = 호버 브릿지 -->
-                <div class="py-1" role="menu" aria-orientation="vertical">
-                  <a href="${cPath}/purchase/getPurchaseList"
-                     class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-accent" role="menuitem">HISTORY</a>
-                  <a href="${cPath}/purchase/getPurchaseList?type=cancel"
-                     class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-accent" role="menuitem">CANCELLATIONS</a>
-                  <a href="${cPath}/purchase/getPurchaseList?type=return"
-                     class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-accent" role="menuitem">RETURNS</a>
-                </div>
-              </div>
-            </div>
-          </c:if>
-
-          <div class="flex items-center gap-4 pl-2">
-            <c:if test="${not empty sessionScope.user}">
-              <a href="${cPath}/user/myPage" class="text-gray-400 hover:text-accent transition-colors" aria-label="My Page">
-                <i class="fa-regular fa-user h-5 w-5"></i>
-              </a>
-            </c:if>
-
-            <c:choose>
-              <c:when test="${not empty sessionScope.user}">
-                <a href="${cPath}/user/logout" class="px-4 py-2 bg-accent text-white font-semibold rounded-lg hover:bg-teal-600 transition-colors">LOGOUT</a>
-              </c:when>
-              <c:otherwise>
-                <a href="${cPath}/user/login" class="px-4 py-2 hover:text-accent transition-colors">LOGIN</a>
-              </c:otherwise>
-            </c:choose>
-          </div>
-        </nav>
-
-        <!-- Mobile hamburger -->
-        <button id="menu-btn" class="md:hidden p-2 rounded-md hover:bg-gray-700 focus:ring-2 focus:ring-accent">
-          <svg class="h-6 w-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Mobile menu -->
-    <div id="menu-panel" class="hidden md:hidden border-t border-gray-700 bg-dark-bg/95 px-4 py-3 space-y-2">
-      <a href="${cPath}/product/getProductList" class="block px-3 py-2 rounded text-gray-300 hover:bg-gray-700 hover:text-accent">PRODUCT</a>
-
-      <c:if test="${not empty sessionScope.user && sessionScope.user.role == 'user'}">
-        <div class="border-b border-gray-700 pb-1">
-          <button id="orders-toggle" class="flex justify-between items-center w-full px-3 py-2 rounded text-gray-300 hover:bg-gray-700 hover:text-accent">
-            ORDERS
-            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="orders-icon"></i>
-          </button>
-          <div id="orders-submenu" class="pl-6 pt-1 hidden space-y-1">
-            <a href="${cPath}/purchase/getPurchaseList" class="block px-3 py-1 text-sm text-gray-400 hover:bg-gray-700 hover:text-accent rounded">HISTORY</a>
-            <a href="${cPath}/purchase/getPurchaseList?type=cancel" class="block px-3 py-1 text-sm text-gray-400 hover:bg-gray-700 hover:text-accent rounded">CANCELLATIONS</a>
-            <a href="${cPath}/purchase/getPurchaseList?type=return" class="block px-3 py-1 text-sm text-gray-400 hover:bg-gray-700 hover:text-accent rounded">RETURNS</a>
-          </div>
-        </div>
-      </c:if>
-
-      <c:choose>
-        <c:when test="${not empty sessionScope.user}">
-          <a href="${cPath}/user/myPage" class="block px-3 py-2 rounded text-gray-300 hover:bg-gray-700 hover:text-accent">MY PAGE</a>
-          <a href="${cPath}/user/logout" class="block px-3 py-2 rounded text-gray-300 hover:bg-gray-700 hover:text-accent">LOGOUT</a>
-        </c:when>
-        <c:otherwise>
-          <a href="${cPath}/user/login" class="block px-3 py-2 rounded text-gray-300 hover:bg-gray-700 hover:text-accent">LOGIN</a>
-        </c:otherwise>
-      </c:choose>
-    </div>
-  </header>
-
-  <!-- Main -->
+  <%@ include file="/layout/top.jsp" %>
+  
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <!-- Hero -->
     <section class="rounded-xl overflow-hidden bg-gradient-to-r from-gray-900 to-dark-card shadow-2xl shadow-accent/20 mt-8" data-aos="zoom-in">
       <div class="px-8 py-16 md:px-16 flex flex-col md:flex-row items-center gap-10">
         <div class="md:w-1/2">
@@ -161,15 +58,19 @@
             </c:if>
           </div>
         </div>
-        <div class="md:w-1/2 mt-8 md:mt-0">
-          <img src="https://ix-marketing.imgix.net/autotagging.png?auto=format,compress&w=1446"
-               alt="미니멀 제품 콜라주"
-               class="w-full h-auto rounded-xl object-cover shadow-2xl"/>
-        </div>
+		<div class="md:w-1/2 mt-8 md:mt-0">
+		  <div class="overflow-hidden rounded-xl shadow-2xl group relative">
+		    <img src="https://ix-marketing.imgix.net/autotagging.png?auto=format,compress&w=1446"
+		         alt="미니멀 제품 콜라주"
+		         class="w-full h-auto object-cover rounded-xl transform transition duration-700 group-hover:scale-110 group-hover:brightness-110"/>
+		    <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition duration-500 flex items-center justify-center">
+		      <span class="text-white font-bold text-lg">Discover More</span>
+		    </div>
+		  </div>
+		</div>
       </div>
     </section>
 
-    <!-- Picks -->
     <section class="mt-20" data-aos="fade-up">
       <h2 class="text-3xl font-bold mb-8 flex items-center gap-3 text-white">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -179,7 +80,6 @@
       </h2>
 
       <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <!-- 노트북 -->
         <a href="${cPath}/product/getProduct?prodNo=1" class="group block rounded-xl overflow-hidden bg-dark-card shadow-lg hover:-translate-y-2 hover:scale-[1.03] hover:shadow-accent/50 transition duration-300">
           <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80"
                alt="노트북" class="h-48 w-full object-cover group-hover:scale-110 transition-transform duration-500"/>
@@ -189,7 +89,6 @@
           </div>
         </a>
 
-        <!-- 패션 (교체 이미지) -->
         <a href="${cPath}/product/getProduct?prodNo=2" class="group block rounded-xl overflow-hidden bg-dark-card shadow-lg hover:-translate-y-2 hover:scale-[1.03] hover:shadow-accent/50 transition duration-300">
           <img src="https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=800&q=80"
                alt="패션" class="h-48 w-full object-cover group-hover:scale-110 transition-transform duration-500"/>
@@ -199,7 +98,6 @@
           </div>
         </a>
 
-        <!-- 백팩 -->
         <a href="${cPath}/product/getProduct?prodNo=3" class="group block rounded-xl overflow-hidden bg-dark-card shadow-lg hover:-translate-y-2 hover:scale-[1.03] hover:shadow-accent/50 transition duration-300">
           <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80"
                alt="백팩" class="h-48 w-full object-cover group-hover:scale-110 transition-transform duration-500"/>
@@ -209,7 +107,6 @@
           </div>
         </a>
 
-        <!-- 의자 -->
         <a href="${cPath}/product/getProduct?prodNo=4" class="group block rounded-xl overflow-hidden bg-dark-card shadow-lg hover:-translate-y-2 hover:scale-[1.03] hover:shadow-accent/50 transition duration-300">
           <img src="https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=800&q=80"
                alt="의자" class="h-48 w-full object-cover group-hover:scale-110 transition-transform duration-500"/>
@@ -222,7 +119,6 @@
     </section>
   </main>
 
-  <!-- Footer -->
   <footer class="mt-20 border-t border-gray-700 py-10 text-sm text-gray-400 bg-gray-900">
     <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
       <div class="flex gap-8">
@@ -247,7 +143,6 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
   <script>
     document.getElementById('y').textContent = new Date().getFullYear();
 
@@ -289,10 +184,13 @@
         arrow.classList.remove('rotate-180');
       };
 
+      // 마우스 이벤트: 드롭다운 영역 전체에 걸쳐 hover 상태 유지
       wrap.addEventListener('mouseenter', open);
       wrap.addEventListener('mouseleave', () => { hideTimer = setTimeout(close, 180); });
       menu.addEventListener('mouseenter', () => clearTimeout(hideTimer));
       menu.addEventListener('mouseleave', () => { hideTimer = setTimeout(close, 180); });
+      
+      // 키보드 접근성 이벤트
       trigger.addEventListener('focus', open);
       trigger.addEventListener('blur',  () => { hideTimer = setTimeout(close, 180); });
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
