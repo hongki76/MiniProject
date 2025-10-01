@@ -17,4 +17,6 @@ public interface PurchaseService {
     int updateTranCodeByProduct(int prodNo, String tranStatusCode) throws Exception;
     
     String getTranCode(int prodNo) throws Exception;
+    
+    void cancelPurchase(int tranNo) throws Exception;
 }

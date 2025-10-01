@@ -8,6 +8,9 @@
   <id property="tranNo" column="tran_no" jdbcType="NUMERIC"/>
 
   <result property="paymentOption" column="payment_option" jdbcType="CHAR"/>
+  <result property="receiverName"  column="receiver_name" jdbcType="VARCHAR"/>
+  <result property="receiverPhone" column="receiver_phone" jdbcType="VARCHAR"/>
+  <result property="receiverEmail" column="demailaddr" jdbcType="VARCHAR"/>  
   <result property="dlvyRequest"   column="dlvy_request"   jdbcType="VARCHAR"/>
   <result property="tranCode"      column="tran_status_code" jdbcType="CHAR"/>
   <result property="orderDate"     column="order_date"     jdbcType="TIMESTAMP"/>
@@ -135,5 +138,18 @@
        SET tran_status_code = #{tranStatusCode}
      WHERE prod_no = #{prodNo, jdbcType=NUMERIC}
   </update>
+
+  <!-- 상태코드 조회: 0(판매중), 1(구매완료), 2(배송중), 3(배송완료) -->
+  <select id="selectTranStatusCode" parameterType="int" resultType="int">
+    SELECT tran_status_code
+    FROM transaction
+    WHERE tran_no = #{tranNo}
+  </select>
+
+  <!-- 구매 레코드 삭제 -->
+  <delete id="deleteByTranNo" parameterType="int">
+    DELETE FROM transaction
+    WHERE tran_no = #{tranNo}
+  </delete>
 
 </mapper>

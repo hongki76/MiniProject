@@ -11,10 +11,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.model2.mvc.common.Page;
 import com.model2.mvc.common.Search;
@@ -184,6 +186,32 @@ public class PurchaseController {
         ModelAndView mav = new ModelAndView();
         mav.setViewName("redirect:/product/getProductList");
         return mav;
+    }
+    
+    @PostMapping("cancelPurchase")
+    public String cancelPurchase(@RequestParam("tranNo") int tranNo,
+                                 RedirectAttributes ra) {
+		System.out.println("### PurchaseController.cancelPurchase() - tranNo(" + tranNo + ")");
+    	
+    	try {
+            purchaseService.cancelPurchase(tranNo);
+            System.out.println("### PurchaseController.cancelPurchase() - 주문취소");
+            ra.addFlashAttribute("message", "주문이 취소되었습니다.");
+        } catch (IllegalArgumentException e) {
+        	System.out.println("### PurchaseController.cancelPurchase() - 존재하지 않는 주문");
+            ra.addFlashAttribute("error", "존재하지 않는 주문입니다.");
+        } catch (IllegalStateException e) {
+        	System.out.println("### PurchaseController.cancelPurchase() - 상태오류(" + e.getMessage() + ")");
+            ra.addFlashAttribute("error", e.getMessage());
+        } catch (Exception e) {
+        	System.out.println("%%% PurchaseController.cancelPurchase() - 주문 취소 오류(" + e.getMessage() + ")");
+            ra.addFlashAttribute("error", "주문 취소 처리 중 오류가 발생했습니다.");
+        }
+
+        System.out.println("### PurchaseController.cancelPurchase() - tranNo(" + tranNo + ")");
+        
+        // 취소 후 목록으로
+        return "redirect:/purchase/getPurchaseList";
     }
 
     // 헬퍼

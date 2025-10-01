@@ -1,11 +1,15 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <html>
 <head>
   <title>구매상세조회</title>
   <link rel="stylesheet" href="/css/admin.css" type="text/css">
+  <style>
+    .a-like { cursor:pointer; text-decoration:underline; color:#06c; background:none; border:0; padding:0; font:inherit; }
+  </style>
 </head>
 
 <body bgcolor="#ffffff" text="#000000">
@@ -60,14 +64,7 @@
         <td width="104" class="ct_write">구매방법</td>
         <td bgcolor="D6D6D6" width="1"></td>
         <td class="ct_write01">
-          <c:out value="${purchase.paymentOption}" default=""/>
-          <%-- 필요 시 코드 매핑
-          <c:choose>
-            <c:when test="${purchase.paymentOption eq '1'}">현금구매</c:when>
-            <c:when test="${purchase.paymentOption eq '2'}">카드구매</c:when>
-            <c:otherwise><c:out value="${purchase.paymentOption}" /></c:otherwise>
-          </c:choose>
-          --%>
+          <c:out value="${purchase.paymentOptionName}" default=""/>
         </td>
       </tr>
       <tr><td height="1" colspan="3" bgcolor="D6D6D6"></td></tr>
@@ -105,11 +102,10 @@
         <td bgcolor="D6D6D6" width="1"></td>
         <td class="ct_write01">
           <c:choose>
-            <%-- Date 타입이면 포맷 --%>
-            <c:when test="${purchase.dlvyDate}">
-              <fmt:formatDate value="${purchase.dlvyDate}" pattern="yyyy-MM-dd" />
+            <c:when test="${not empty purchase.dlvyDate}">
+              <fmt:parseDate value="${purchase.dlvyDate}" pattern="yyyy-MM-dd HH:mm:ss" var="__d" />
+              <fmt:formatDate value="${__d}" pattern="yyyy-MM-dd" />
             </c:when>
-            <c:otherwise><c:out value="${purchase.dlvyDate}" default=""/></c:otherwise>
           </c:choose>
         </td>
       </tr>
@@ -121,7 +117,7 @@
         <td class="ct_write01">
           <c:choose>
             <c:when test="${not empty purchase.orderDate}">
-              <fmt:formatDate value="${purchase.orderDate}" pattern="yyyy-MM-dd HH:mm" />
+              <fmt:formatDate value="${purchase.orderDate}" pattern="yyyy-MM-dd" />
             </c:when>
             <c:otherwise><c:out value="${purchase.orderDate}" default=""/></c:otherwise>
           </c:choose>
@@ -136,25 +132,21 @@
         <td align="right">
           <table border="0" cellspacing="0" cellpadding="0">
             <tr>
-
-           <c:choose>
-             <c:when test="${tranCode == 0}">
-               <td width="17" height="23"><img src="/images/ct_btnbg01.gif" width="17" height="23"/></td>
-               <td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
-                 <a href="/purchase/updatePurchase?tranNo=${purchase.tranCode}">수정</a>              	
-               </td>
-               <td width="14" height="23"><img src="/images/ct_btnbg03.gif" width="14" height="23"/></td>              	
-             </c:when>
-           </c:choose>
-                
-              <td width="30"></td>
+            
+              <td width="80">
+				<c:if test="${fn:trim(purchase.tranCode) == '0' or fn:trim(purchase.tranCode) == '1'}">
+				  <button type="button" class="btn btn-danger js-cancel-purchase" data-tran-no="${purchase.tranNo}">
+				    주문 취소
+				  </button>
+				</c:if>
+              </td>
+              
               <td width="17" height="23"><img src="/images/ct_btnbg01.gif" width="17" height="23"/></td>
               <td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
-                <a href="javascript:history.go(-1);">확인</a>
+                <button type="button" id="btnOk" class="a-like">확인</button>
               </td>
               <td width="14" height="23"><img src="/images/ct_btnbg03.gif" width="14" height="23"/></td>
-              
-            </tr>            
+            </tr>
           </table>
         </td>
       </tr>
@@ -163,5 +155,8 @@
   </c:otherwise>
 </c:choose>
 
+<!-- 외부 스크립트 -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="/javascript/purchase-get.js"></script>
 </body>
 </html>

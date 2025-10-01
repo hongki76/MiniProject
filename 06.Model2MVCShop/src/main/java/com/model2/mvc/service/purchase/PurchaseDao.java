@@ -19,4 +19,8 @@ public interface PurchaseDao {
     int updateTranCodeByProduct(int prodNo, String tranStatusCode) throws Exception;
     
     String getTranCode(int prodNo) throws Exception;
+    
+    int selectTranStatusCode(int tranNo) throws Exception;
+    
+    int deleteByTranNo(int tranNo) throws Exception;
 }

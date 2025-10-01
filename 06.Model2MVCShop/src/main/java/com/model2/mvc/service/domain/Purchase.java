@@ -12,7 +12,7 @@ public class Purchase implements java.io.Serializable {
     private String paymentOption;       // 결제 방법(1:현금/2:카드)
     private String receiverName; // 구매자 이름
     private String receiverPhone; // 구매자 연락처 
-    private String receiverEmail; // 수신자 Email
+    private String receiverEmail; // 구매자 Email
     private String dlvyRequest;         // 배송 요청사항
     private String dlvyDate;            // 배송 희망 일자(yyyyMMdd)
     private String tranCode;            // 구매 상태 코드 ('0'=판매중, '1'=배송중, '2'=배송완료)
@@ -80,5 +80,17 @@ public class Purchase implements java.io.Serializable {
 
 	public void setReceiverEmail(String receiverEmail) {
 		this.receiverEmail = receiverEmail;
+	}
+	
+	public String getPaymentOptionName() {
+	    if (paymentOption == null) return "";
+	    // 앞뒤 공백 제거
+	    String opt = paymentOption.trim();
+
+	    switch (opt) {
+	        case "1": return "현금구매";
+	        case "2": return "카드구매";
+	        default : return opt;   // 알 수 없는 코드는 그대로 노출
+	    }
 	}
 }
