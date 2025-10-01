@@ -10,12 +10,19 @@ public class Search {
 	private String searchKeyword;
 	private int pageSize;
 	private String orderByPriceAsc;
+	
 	//==> 리스트화면 currentPage에 해당하는 회원정보를 ROWNUM 사용 SELECT 위해 추가된 Field 
 	//==> UserMapper.xml 의 
 	//==> <select  id="getUserList"  parameterType="search"	resultMap="userSelectMap">
 	//==> 참조
-	private int endRowNum;
+	private int endRowNum;	
 	private int startRowNum;
+	
+    // ▼ 가격 범위
+    private Integer minPrice; // null 허용
+    private Integer maxPrice; // null 허용
+    
+    private String regDateKeyword; 
 	
 	///Constructor
 	public Search() {
@@ -72,11 +79,35 @@ public class Search {
 		this.orderByPriceAsc = orderByPriceAsc;
 	}
 
+	public Integer getMinPrice() {
+		return minPrice;
+	}
+
+	public void setMinPrice(Integer minPrice) {
+		this.minPrice = minPrice;
+	}
+
+	public Integer getMaxPrice() {
+		return maxPrice;
+	}
+
+	public void setMaxPrice(Integer maxPrice) {
+		this.maxPrice = maxPrice;
+	}
+	
 	@Override
 	public String toString() {
 		return "Search [currentPage=" + currentPage + ", searchCondition="
 				+ searchCondition + ", searchKeyword=" + searchKeyword
 				+ ", pageSize=" + pageSize + ", endRowNum=" + endRowNum
 				+ ", startRowNum=" + startRowNum + "]";
+	}
+
+	public String getRegDateKeyword() {
+		return regDateKeyword;
+	}
+
+	public void setRegDateKeyword(String regDateKeyword) {
+		this.regDateKeyword = regDateKeyword;
 	}
 }

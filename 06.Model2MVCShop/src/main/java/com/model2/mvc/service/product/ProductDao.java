@@ -25,4 +25,8 @@ public interface ProductDao {
     void deleteProductFile(int fileNo) throws Exception;
     
     ProductFile getProductFile(int fileNo) throws Exception;
+
+	public List<String> autoCompleteProductName(String prefix, int limit);
+
+	public List<String> autoCompleteRegDate(String prefixYYYYMMDD, int limit);
 }
