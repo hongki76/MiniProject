@@ -70,7 +70,7 @@
 	          AND LOWER(p.prod_name) LIKE '%' || LOWER(#{searchKeyword}) || '%'
 	        </when>
 	        <when test="searchCondition == '1' or searchCondition == 1">
-	          AND TO_CHAR(p.price) LIKE '%' || #{searchKeyword} || '%'
+	          AND LOWER(p.prod_detail) LIKE '%' || LOWER(#{searchKeyword}) || '%'
 	        </when>
 	        <!-- 날짜(2)는 여기서 분기하지 않음: 아래 regDateKeyword로 독립 처리 -->
 	      </choose>
