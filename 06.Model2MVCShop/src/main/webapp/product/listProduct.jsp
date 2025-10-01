@@ -13,6 +13,33 @@
       cursor:pointer; text-decoration:underline; color:#0066cc;
       background:none; border:none; padding:0; font:inherit;
     }
+    
+    /* 무한스크롤 가독성 향상 */
+    .ct_list_pop td { padding: 50px 2px; }
+    .ct_list_b { height: 28px; }
+    
+	/* 상품 hover 레이어 */
+	.prod-hover-layer{
+	  position: absolute;
+	  z-index: 3000;
+	  min-width: 280px;
+	  max-width: 420px;
+	  background: #fff;
+	  border: 1px solid #d9d9d9;
+	  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+	  border-radius: 8px;
+	  padding: 12px 14px;
+	  display: none;
+	  pointer-events: auto;
+	}
+	.prod-hover-layer .ttl{ font-weight: 600; margin-bottom: 6px; }
+	.prod-hover-layer .row{ font-size: 13px; line-height: 1.4; margin: 2px 0; }
+	.prod-hover-layer .price{ font-weight: 600; }
+	.prod-hover-layer .act{ margin-top: 8px; text-align: right; }
+	.prod-hover-layer .btn-like{
+	  cursor:pointer; text-decoration:underline; color:#0066cc;
+	  background:none; border:none; padding:0; font:inherit;
+	}
   </style>
 </head>
 
@@ -32,30 +59,31 @@
     </tr>
   </table>
 
-  <!-- 검색/페이징 전용 form -->
+  <!-- 검색/페이징 전용 form (제출은 JS가 막고 AJAX로 처리) -->
   <form name="detailForm" id="detailForm" action="${cPath}/product/getProductList" method="post">
     <input type="hidden" id="currentPage" name="currentPage"
            value="${empty resultPage.currentPage ? 1 : resultPage.currentPage}"/>
     <input type="hidden" id="orderByPriceAsc" name="orderByPriceAsc" value="${search.orderByPriceAsc}"/>
-    <input type="hidden" name="regDateKeyword" id="regDateKeyword" value="${search.regDateKeyword}"/>    
+    <input type="hidden" name="regDateKeyword" id="regDateKeyword" value="${search.regDateKeyword}"/>
 
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:10px;">
       <tr>
         <td align="right">
           가격
-
           <button type="button" class="a-like sort-price" data-order="DESC" aria-label="가격 내림차순">↑</button>
           <button type="button" class="a-like sort-price" data-order="ASC"  aria-label="가격 오름차순">↓</button>
-			&nbsp;
-		  <select name="searchCondition" class="ct_input_g" style="width:100px" id="searchCondition">
-		    <option value="0" ${!empty search.searchCondition && search.searchCondition==0 ? "selected" : ""}>상품명</option>
-		    <option value="1" ${!empty search.searchCondition && search.searchCondition==1 ? "selected" : ""}>상품가격</option>
-		    <option value="2" ${!empty search.searchCondition && search.searchCondition==2 ? "selected" : ""}>등록일</option>
-		  </select>
-		
-		  <input type="text" name="searchKeyword" id="searchKeyword"
-		       value="${! empty search.searchKeyword ? search.searchKeyword : ""}"
-		       class="ct_input_g" style="width:200px; height:19px" />
+          &nbsp;
+          <select name="searchCondition" class="ct_input_g" style="width:100px" id="searchCondition">
+            <option value="0" ${!empty search.searchCondition && search.searchCondition==0 ? "selected" : ""}>상품명</option>
+            <option value="1" ${!empty search.searchCondition && search.searchCondition==1 ? "selected" : ""}>상품가격</option>
+            <option value="2" ${!empty search.searchCondition && search.searchCondition==2 ? "selected" : ""}>등록일</option>
+          </select>
+
+			<div class="ac-wrap" style="display:inline-block;">
+			  <input type="text" name="searchKeyword" id="searchKeyword"
+			         value="${! empty search.searchKeyword ? search.searchKeyword : ""}"
+			         class="ct_input_g" style="width:200px; height:19px" />
+			</div>
 
           <input type="text" name="minPrice" value="${search.minPrice}" class="ct_input_g"
                style="width:100px; height:19px; text-align:right;" placeholder="최소금액" num="n" />
@@ -81,7 +109,10 @@
   <!-- 리스트 -->
   <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:10px;">
     <tr>
-      <td colspan="11">전체 ${resultPage.totalCount} 건수, 현재 ${resultPage.currentPage} 페이지</td>
+      <td colspan="11">
+        전체 <span id="totalCountSpan">${resultPage.totalCount}</span> 건수,
+        현재 <span id="currentPageSpan">${resultPage.currentPage}</span> 페이지
+      </td>
     </tr>
     <tr>
       <td class="ct_list_b" width="100">No</td>
@@ -98,56 +129,63 @@
     </tr>
     <tr><td colspan="11" bgcolor="808285" height="1"></td></tr>
 
-    <c:forEach var="product" items="${list}" varStatus="loop">
-      <tr class="ct_list_pop">
-        <td align="center"> <!-- No -->
-          ${resultPage.totalCount - ((resultPage.currentPage-1) * resultPage.pageSize) - loop.index}
-        </td>
-        <td></td>
+    <!-- 무한스크롤: 여기에 계속 append -->
+    <tbody id="productTbody">
+      <c:forEach var="product" items="${list}" varStatus="loop">
+        <tr class="ct_list_pop">
+          <td align="center">
+            ${resultPage.totalCount - ((resultPage.currentPage-1) * resultPage.pageSize) - loop.index}
+          </td>
+          <td></td>
 
-        <td align="left"> <!-- 상품명 -->
-          <form action="/product/getProduct" method="post" style="display:inline;">
-            <input type="hidden" name="prodNo" value="${product.prodNo}" />
-            <button type="submit" class="a-like">${product.prodName}</button>
-          </form>
-        </td>
+          <td align="left">
+            <form action="/product/getProduct" method="post" style="display:inline;">
+              <input type="hidden" name="prodNo" value="${product.prodNo}" />
+              <button type="submit" class="a-like prod-link" data-prodno="${product.prodNo}">
+  				${product.prodName}
+			  </button>
+            </form>
+          </td>
 
-        <td></td>
-        <td align="right">${product.price}</td> <!-- 가격 -->
-        <td></td>
-        <td align="center">${product.regDate}</td> <!-- 등록일 -->
-        <td></td>
+          <td></td>
+          <td align="right">${product.price}</td>
+          <td></td>
+          <td align="center">${product.regDate}</td>
+          <td></td>
 
-        <td align="center"> <!-- 현재상태 -->
-          <c:choose>
-            <c:when test="${not empty user and user.role eq 'admin' and product.proTranCode eq '1'}">
-              ${product.proTranState}
-              <a href="/purchase/updateTranCodeByProduct?prodNo=${product.prodNo}&amp;tranStatusCode=2" class="a-like">배송하기</a>
-            </c:when>
-            <c:otherwise>
-              ${product.proTranState}
-            </c:otherwise>
-          </c:choose>
-        </td>
+          <td align="center">
+            <c:choose>
+              <c:when test="${not empty user and user.role eq 'admin' and product.proTranCode eq '1'}">
+                ${product.proTranState}
+                <a href="/purchase/updateTranCodeByProduct?prodNo=${product.prodNo}&amp;tranStatusCode=2" class="a-like">배송하기</a>
+              </c:when>
+              <c:otherwise>
+                ${product.proTranState}
+              </c:otherwise>
+            </c:choose>
+          </td>
 
-        <td></td>
-        <td></td>
-        
-      </tr>
-      <tr><td colspan="11" bgcolor="D6D7D6" height="1"></td></tr>
-    </c:forEach>
-  </table>
-
-  <!-- 페이지 네비게이터 -->
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:10px;">
-    <tr>
-      <td align="center">
-        <jsp:include page="../common/pageNavigator.jsp"/>
-      </td>
-    </tr>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr><td colspan="11" bgcolor="D6D7D6" height="1"></td></tr>
+      </c:forEach>
+    </tbody>
   </table>
 
 </div>
+
+<!-- 전역 설정: 무한스크롤 스크립트에서 활용 -->
+<script>
+  window.__PRODUCT_LIST_CONFIG__ = {
+    cPath: '${cPath}',
+    isLogin: ${not empty user ? 'true' : 'false'},
+    role: '${empty user ? "" : user.role}',
+    pageSizeSSR: ${empty resultPage.pageSize ? 'null' : resultPage.pageSize},
+    totalCountSSR: ${empty resultPage.totalCount ? 0 : resultPage.totalCount},
+    currentPageSSR: ${empty resultPage.currentPage ? 1 : resultPage.currentPage}
+  };
+</script>
 
 <!-- 스크립트: 하단에 외부 파일로만 로드 -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

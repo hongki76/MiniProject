@@ -24,5 +24,8 @@ public interface ProductService {
     public void deleteProductFile(int fileNo) throws Exception;
     
     public ProductFile getProductFile(int fileNo) throws Exception;
+
+    public List<String> autoCompleteProductName(String prefix, int limit) throws Exception;
     
+    public List<String> autoCompleteRegDate(String prefixYYYYMMDD, int limit) throws Exception;
 }

@@ -29,7 +29,7 @@ import com.model2.mvc.service.purchase.PurchaseService;
 @RequestMapping("/purchase/*")
 public class PurchaseRestController {
 
-    // ===== Config (페이징 계산에 사용, 필요 없으면 응답에서 resultPage 제거 가능) =====
+    // ===== Config (페이징 계산에 사용) =====
     @Value("#{commonProperties['pageUnit']}")
     int pageUnit;
 
@@ -53,24 +53,33 @@ public class PurchaseRestController {
     // 1) 구매 등록 : JSON
     //    Content-Type: application/json
     //    Body : Purchase (purchaseProd.prodNo 포함 권장)
+    //    Query(optional): prodNo → body 미제공 시 보정용
     // =========================================================
     @PostMapping(value = "json/addPurchase", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public boolean addPurchase(@RequestBody Purchase purchase, HttpSession session) throws Exception {
+    public boolean addPurchase(@RequestBody Purchase purchase,
+                               @RequestParam(value = "prodNo", required = false) Integer prodNo,
+                               HttpSession session) throws Exception {
         System.out.println("/purchase/json/addPurchase : POST(JSON) 호출됨");
-        // 기본 거래상태(구매완료) 세팅 없으면 기본값 주입
-        if (purchase.getTranCode() == null || purchase.getTranCode().trim().isEmpty()) {
-            purchase.setTranCode("1");
-        }
+
+        // [UPDATED] 최신 MVC 로직과 동일하게 거래상태를 항상 '구매완료(1)'로 강제 설정
+        purchase.setTranCode("1");
+
         // 세션 사용자 주입(구매자)
         User buyer = (User) session.getAttribute("user");
         if (buyer != null) {
             purchase.setBuyer(buyer);
         }
-        // (선택) prodNo만 넘어오는 경우 보정
-        if (purchase.getPurchaseProd() != null && purchase.getPurchaseProd().getProdNo() > 0) {
-            // 필요 시 상품 존재 여부 체크
+
+        // 상품번호 보정: 쿼리스트링 prodNo 우선 → 바디의 purchaseProd.prodNo → 그대로
+        int resolvedProdNo = -1;
+        if (prodNo != null && prodNo > 0) {
+            resolvedProdNo = prodNo;
+        } else if (purchase.getPurchaseProd() != null && purchase.getPurchaseProd().getProdNo() > 0) {
+            resolvedProdNo = purchase.getPurchaseProd().getProdNo();
+        }
+        if (resolvedProdNo > 0) {
             Product prod = new Product();
-            prod.setProdNo(purchase.getPurchaseProd().getProdNo());
+            prod.setProdNo(resolvedProdNo);
             purchase.setPurchaseProd(prod);
         }
 
@@ -78,14 +87,34 @@ public class PurchaseRestController {
         return true;
     }
 
-    // =========================================================
-    // 2) 구매 단건 조회
-    // =========================================================
-    @GetMapping("json/getPurchase/{tranNo}")
-    public Purchase getPurchase(@PathVariable int tranNo, HttpSession session) throws Exception {
-        System.out.println("/purchase/json/getPurchase : GET 호출됨, tranNo=" + tranNo);
-        return purchaseService.getPurchase(tranNo);
-    }
+	 // =========================================================
+	 // 2) 구매 단건 조회  (상품 상세 주입 보강)
+	 // =========================================================
+	 @GetMapping("json/getPurchase/{tranNo}")
+	 public Purchase getPurchase(@PathVariable int tranNo, HttpSession session) throws Exception {
+	     System.out.println("/purchase/json/getPurchase : GET 호출됨, tranNo=" + tranNo);
+	
+	     Purchase purchase = purchaseService.getPurchase(tranNo);
+	
+	     // 상품 정보가 비어 있으면 보강 주입
+	     if (purchase != null && purchase.getPurchaseProd() != null) {
+	         int prodNo = purchase.getPurchaseProd().getProdNo();
+	         if (prodNo > 0) {
+	             try {
+	                 Product full = productService.getProduct(prodNo);
+	                 if (full != null) {
+	                     purchase.setPurchaseProd(full);
+	                 }
+	             } catch (Exception ignore) {
+	                 // 상품이 삭제되었거나 조회 실패 시 기존 prodNo만 유지
+	                 System.out.println("getPurchase: product enrich failed for prodNo=" + prodNo);
+	             }
+	         }
+	     }
+	
+	     return purchase;
+	 }
+
 
     // =========================================================
     // 3) 구매 목록(구매자 기준)
@@ -100,7 +129,7 @@ public class PurchaseRestController {
             @RequestParam(value = "buyerId", required = false) String buyerId,
             HttpSession session) throws Exception {
 
-        // 페이징 기본값 보정
+        // 페이징 기본값 보정 (최신 MVC와 동일한 기본 pageSize 사용)
         if (search.getCurrentPage() <= 0) search.setCurrentPage(1);
         if (search.getPageSize() <= 0) search.setPageSize(pageSize);
 
@@ -126,7 +155,7 @@ public class PurchaseRestController {
             totalCount = (alt instanceof Integer) ? (Integer) alt : 0;
         }
 
-        // 상태 문자열 맵 생성 (tranNo -> tranState)
+        // 상태 문자열 맵 생성 (tranNo -> tranState)  // MVC와 동일한 라벨
         Map<Integer, String> tranStateMap = new HashMap<>();
         if (list != null) {
             for (Purchase p : list) {
@@ -174,12 +203,17 @@ public class PurchaseRestController {
         res.put("updatedRows", rows);
         return res;
     }
-    
+
+    // =========================================================
+    // 6) 주문 취소 (REST)
+    //    POST /purchase/json/cancelPurchase?tranNo=123
+    //    반환: { success: boolean, message: String }
+    // =========================================================
     @PostMapping("json/cancelPurchase")
     public Map<String, Object> cancelPurchase(@RequestParam int tranNo) {
         Map<String, Object> res = new HashMap<>();
         try {
-        	System.out.println("PurchaseRestController.cancelPurchase() - tranNo(" + ")");
+            System.out.println("### PurchaseRestController.cancelPurchase() - tranNo(" + tranNo + ")");
             purchaseService.cancelPurchase(tranNo);
             res.put("success", true);
             res.put("message", "주문이 취소되었습니다.");
