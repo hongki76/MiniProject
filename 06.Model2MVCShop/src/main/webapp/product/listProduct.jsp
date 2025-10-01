@@ -13,33 +13,38 @@
       cursor:pointer; text-decoration:underline; color:#0066cc;
       background:none; border:none; padding:0; font:inherit;
     }
-    
-    /* 무한스크롤 가독성 향상 */
+
+    /* 무한스크롤 가독성 */
     .ct_list_pop td { padding: 50px 2px; }
     .ct_list_b { height: 28px; }
-    
-	/* 상품 hover 레이어 */
-	.prod-hover-layer{
-	  position: absolute;
-	  z-index: 3000;
-	  min-width: 280px;
-	  max-width: 420px;
-	  background: #fff;
-	  border: 1px solid #d9d9d9;
-	  box-shadow: 0 8px 24px rgba(0,0,0,.12);
-	  border-radius: 8px;
-	  padding: 12px 14px;
-	  display: none;
-	  pointer-events: auto;
-	}
-	.prod-hover-layer .ttl{ font-weight: 600; margin-bottom: 6px; }
-	.prod-hover-layer .row{ font-size: 13px; line-height: 1.4; margin: 2px 0; }
-	.prod-hover-layer .price{ font-weight: 600; }
-	.prod-hover-layer .act{ margin-top: 8px; text-align: right; }
-	.prod-hover-layer .btn-like{
-	  cursor:pointer; text-decoration:underline; color:#0066cc;
-	  background:none; border:none; padding:0; font:inherit;
-	}
+
+    /* 현재상태 배지 */
+    .badge{ display:inline-block; min-width:64px; padding:2px 8px; border-radius:10px; font-size:12px; line-height:18px; }
+    .badge.on{  color:#0a7; background:#eafff5; border:1px solid #b9f0dc; }   /* 판매중 */
+    .badge.off{ color:#a33; background:#fff1f1; border:1px solid #f3c9c9; }   /* 재고없음 */
+
+    /* 상품 hover 레이어 */
+    .prod-hover-layer{
+      position: absolute;
+      z-index: 3000;
+      min-width: 280px;
+      max-width: 420px;
+      background: #fff;
+      border: 1px solid #d9d9d9;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: none;
+      pointer-events: auto;
+    }
+    .prod-hover-layer .ttl{ font-weight: 600; margin-bottom: 6px; }
+    .prod-hover-layer .row{ font-size: 13px; line-height: 1.4; margin: 2px 0; }
+    .prod-hover-layer .price{ font-weight: 600; }
+    .prod-hover-layer .act{ margin-top: 8px; text-align: right; }
+    .prod-hover-layer .btn-like{
+      cursor:pointer; text-decoration:underline; color:#0066cc;
+      background:none; border:none; padding:0; font:inherit;
+    }
   </style>
 </head>
 
@@ -79,17 +84,17 @@
             <option value="2" ${!empty search.searchCondition && search.searchCondition==2 ? "selected" : ""}>등록일</option>
           </select>
 
-			<div class="ac-wrap" style="display:inline-block;">
-			  <input type="text" name="searchKeyword" id="searchKeyword"
-			         value="${! empty search.searchKeyword ? search.searchKeyword : ""}"
-			         class="ct_input_g" style="width:200px; height:19px" />
-			</div>
+          <div class="ac-wrap" style="display:inline-block;">
+            <input type="text" name="searchKeyword" id="searchKeyword"
+                   value="${! empty search.searchKeyword ? search.searchKeyword : ""}"
+                   class="ct_input_g" style="width:200px; height:19px" />
+          </div>
 
           <input type="text" name="minPrice" value="${search.minPrice}" class="ct_input_g"
-               style="width:100px; height:19px; text-align:right;" placeholder="최소금액" num="n" />
+                 style="width:100px; height:19px; text-align:right;" placeholder="최소금액" num="n" />
           ~
           <input type="text" name="maxPrice" value="${search.maxPrice}" class="ct_input_g"
-               style="width:100px; height:19px; text-align:right;" placeholder="최대금액" num="n" />
+                 style="width:100px; height:19px; text-align:right;" placeholder="최대금액" num="n" />
         </td>
         <td align="right" width="70">
           <table border="0" cellspacing="0" cellpadding="0">
@@ -125,7 +130,7 @@
       <td class="ct_line02"></td>
       <td class="ct_list_b" width="150">현재상태</td>
       <td class="ct_line02"></td>
-      <td class="ct_list_b"></td>
+      <td class="ct_list_b" width="120">작업</td>
     </tr>
     <tr><td colspan="11" bgcolor="808285" height="1"></td></tr>
 
@@ -139,11 +144,11 @@
           <td></td>
 
           <td align="left">
-            <form action="/product/getProduct" method="post" style="display:inline;">
+            <form action="${cPath}/product/getProduct" method="post" style="display:inline;">
               <input type="hidden" name="prodNo" value="${product.prodNo}" />
               <button type="submit" class="a-like prod-link" data-prodno="${product.prodNo}">
-  				${product.prodName}
-			  </button>
+                ${product.prodName}
+              </button>
             </form>
           </td>
 
@@ -153,20 +158,26 @@
           <td align="center">${product.regDate}</td>
           <td></td>
 
+          <!-- 현재상태 -->
           <td align="center">
             <c:choose>
-              <c:when test="${not empty user and user.role eq 'admin' and product.proTranCode eq '1'}">
-                ${product.proTranState}
-                <a href="/purchase/updateTranCodeByProduct?prodNo=${product.prodNo}&amp;tranStatusCode=2" class="a-like">배송하기</a>
+              <c:when test="${product.proTranCode eq '0' || product.proTranCode == 0}">
+                <span class="badge on">판매중</span>
               </c:when>
               <c:otherwise>
-                ${product.proTranState}
+                <span class="badge off">재고없음</span>
               </c:otherwise>
             </c:choose>
           </td>
 
           <td></td>
-          <td></td>
+
+          <!-- ✅ 작업(배송하기) -->
+          <td align="center">
+            <c:if test="${not empty user and user.role eq 'admin' and (product.proTranCode eq '1' or product.proTranCode == 1)}">
+              <a href="${cPath}/purchase/updateTranCodeByProduct?prodNo=${product.prodNo}&amp;tranStatusCode=2" class="a-like">배송하기</a>
+            </c:if>
+          </td>
         </tr>
         <tr><td colspan="11" bgcolor="D6D7D6" height="1"></td></tr>
       </c:forEach>
@@ -187,7 +198,7 @@
   };
 </script>
 
-<!-- 스크립트: 하단에 외부 파일로만 로드 -->
+<!-- 스크립트 -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="/javascript/CommonScript-jq.js"></script>
 <script src="/javascript/product-list.js"></script>
