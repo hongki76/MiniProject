@@ -1,423 +1,342 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="cPath" value="${pageContext.request.contextPath}" />
 
 <!DOCTYPE html>
-<html>
-
+<html lang="ko">
 <head>
-	<meta charset="UTF-8">
-	
-	<title>회원가입</title>
-	
-	<link rel="stylesheet" href="/css/admin.css" type="text/css">
-	
-	<!-- CDN(Content Delivery Network) 호스트 사용 -->
-	<script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
-	<script type="text/javascript">
-		
-		//=====기존Code 주석 처리 후  jQuery 변경 ======//
-		function fncAddUser() {
-			// Form 유효성 검증
-			//var id=document.detailForm.userId.value;
-			//var pw=document.detailForm.password.value;
-			//var pw_confirm=document.detailForm.password2.value;
-			//var name=document.detailForm.userName.value;
-			
-			var id=$("input[name='userId']").val();
-			var pw=$("input[name='password']").val();
-			var pw_confirm=$("input[name='password2']").val();
-			var name=$("input[name='userName']").val();
-			
-			
-			if(id == null || id.length <1){
-				alert("아이디는 반드시 입력하셔야 합니다.");
-				return;
-			}
-			if(pw == null || pw.length <1){
-				alert("패스워드는  반드시 입력하셔야 합니다.");
-				return;
-			}
-			if(pw_confirm == null || pw_confirm.length <1){
-				alert("패스워드 확인은  반드시 입력하셔야 합니다.");
-				return;
-			}
-			if(name == null || name.length <1){
-				alert("이름은  반드시 입력하셔야 합니다.");
-				return;
-			}
-			
-			//if(document.detailForm.password.value != document.detailForm.password2.value) {
-			if( pw != pw_confirm ) {				
-				alert("비밀번호 확인이 일치하지 않습니다.");
-				//document.detailForm.password2.focus();
-				$("input:text[name='password2']").focus();
-				return;
-			}
-				
-			//if(document.detailForm.phone2.value != "" && document.detailForm.phone2.value != "") {
-			//	document.detailForm.phone.value = document.detailForm.phone1.value + "-" + document.detailForm.phone2.value + "-" + document.detailForm.phone3.value;
-			//} else {
-			//	document.detailForm.phone.value = "";
-			//}
-			
-			var value = "";	
-			if( $("input:text[name='phone2']").val() != ""  &&  $("input:text[name='phone3']").val() != "") {
-				var value = $("option:selected").val() + "-" 
-									+ $("input[name='phone2']").val() + "-" 
-									+ $("input[name='phone3']").val();
-			}
-			//Debug..
-			//alert("phone : "+value)
-			$("input:hidden[name='phone']").val( value );
-			
-			//document.detailForm.action='/user/addUser';
-			//document.detailForm.submit();
-			$("form").attr("method" , "POST").attr("action" , "/user/addUser").submit();
-		}
-		//===========================================//
-		//==> 추가된부분 : "가입"  Event 연결
-		 $(function() {
-			//==> DOM Object GET 3가지 방법 ==> 1. $(tagName) : 2.(#id) : 3.$(.className)
-			//==> 1 과 3 방법 조합 : $("tagName.className:filter함수") 사용함.	
-			 $( "td.ct_btn01:contains('가입')" ).on("click" , function() {
-				//Debug..
-				//alert(  $( "td.ct_btn01:contains('가입')" ).html() );
-				fncAddUser();
-			});
-		});	
-		
-		
-		/*============= jQuery 변경 주석처리 =============
-		function resetData() {
-				document.detailForm.reset();
-		}========================================	*/
-		//==> 추가된부분 : "취소"  Event 처리 및  연결
-		$(function() {
-			//==> DOM Object GET 3가지 방법 ==> 1. $(tagName) : 2.(#id) : 3.$(.className)
-			//==> 1 과 3 방법 조합 : $("tagName.className:filter함수") 사용함.	
-			 $( "td.ct_btn01:contains('취소')" ).on("click" , function() {
-					//Debug..
-					//alert(  $( "td.ct_btn01:contains('취소')" ).html() );
-					$("form")[0].reset();
-			});
-		});	
-		 
+  <meta charset="UTF-8" />
+  <title>회원가입 | HK Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-		 /*============= jQuery 변경 주석처리 =============
-		function check_email(frm) {
-			var email=document.detailForm.email.value;
-		    if(email != "" && (email.indexOf('@') < 1 || email.indexOf('.') == -1)){
-		    	alert("이메일 형식이 아닙니다.");
-				return false;
-		    }
-		    return true;
-		}========================================	*/
-		//==> 추가된부분 : "이메일" 유효성Check  Event 처리 및 연결
-		 $(function() {
-			 
-			 $("input[name='email']").on("change" , function() {
-				
-				 var email=$("input[name='email']").val();
-			    
-				 if(email != "" && (email.indexOf('@') < 1 || email.indexOf('.') == -1) ){
-			    	alert("이메일 형식이 아닙니다.");
-			     }
-			});
-			 
-		});	
-		
-	   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	   //==> 주민번호 유효성 check 는 이해정도로....
-		function checkSsn() {
-			var ssn1, ssn2; 
-			var nByear, nTyear; 
-			var today; 
-	
-			ssn = document.detailForm.ssn.value;
-			// 유효한 주민번호 형식인 경우만 나이 계산 진행, PortalJuminCheck 함수는 CommonScript.js 의 공통 주민번호 체크 함수임 
-			if(!PortalJuminCheck(ssn)) {
-				alert("잘못된 주민번호입니다.");
-				return false;
-			}
-		}
-	
-		function PortalJuminCheck(fieldValue){
-		    var pattern = /^([0-9]{6})-?([0-9]{7})$/; 
-			var num = fieldValue;
-		    if (!pattern.test(num)) return false; 
-		    num = RegExp.$1 + RegExp.$2;
-	
-			var sum = 0;
-			var last = num.charCodeAt(12) - 0x30;
-			var bases = "234567892345";
-			for (var i=0; i<12; i++) {
-				if (isNaN(num.substring(i,i+1))) return false;
-				sum += (num.charCodeAt(i) - 0x30) * (bases.charCodeAt(i) - 0x30);
-			}
-			var mod = sum % 11;
-			return ((11 - mod) % 10 == last) ? true : false;
-		}
-		 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-		/*============= jQuery 변경 주석처리 =============
-		function fncCheckDuplication() {
-			popWin 
-				= window.open("/user/checkDuplication.jsp",
-											"popWin", 
-											"left=300,top=200,width=300,height=200,marginwidth=0,marginheight=0,"+
-											"scrollbars=no,scrolling=no,menubar=no,resizable=no");
-		}========================================	*/
-		//==> 추가된부분 : "ID중복확인" Event 처리 및 연결
-		 $(function() {
-			//==> DOM Object GET 3가지 방법 ==> 1. $(tagName) : 2.(#id) : 3.$(.className)
-			//==> 1 과 3 방법 조합 : $("tagName.className:filter함수") 사용함.	
-			 $("td.ct_btn:contains('ID중복확인')").on("click" , function() {
-				//alert($("td.ct_btn:contains('ID중복확인')").html());
-				popWin 
-				= window.open("/user/checkDuplication.jsp",
-											"popWin", 
-											"left=300,top=200,width=300,height=200,marginwidth=0,marginheight=0,"+
-											"scrollbars=no,scrolling=no,menubar=no,resizable=no");
-			});
-		});	
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            accent:    '#14b8a6',
+            'dark-bg': '#1f2937',
+            'dark-card':'#374151',
+            'dark-text':'#f3f4f6',
+          }
+        }
+      }
+    }
+  </script>
 
-	</script>		
-	
+  <!-- AOS / Icons -->
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+  <!-- jQuery -->
+  <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
 </head>
 
-<body bgcolor="#ffffff" text="#000000">
+<body class="min-h-screen bg-gradient-to-b from-gray-900 to-dark-bg text-dark-text">
+  <%@ include file="/layout/top.jsp" %>
 
-<!-- ////////////////// jQuery Event 처리로 변경됨 ///////////////////////// 
-<form name="detailForm"  method="post" >
-////////////////////////////////////////////////////////////////////////////////////////////////// -->
-<form name="detailForm">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <section class="grid lg:grid-cols-2 gap-10 items-start">
+      <!-- Left: Intro Visual -->
+      <div data-aos="fade-right" class="hidden lg:block">
+        <div class="rounded-2xl bg-gradient-to-br from-dark-card to-gray-800 p-10 shadow-2xl shadow-accent/20 sticky top-6">
+          <p class="text-sm font-semibold text-accent tracking-widest mb-3">JOIN US</p>
+          <h1 class="text-4xl font-extrabold text-white leading-tight mb-4">
+            몇 가지 정보만 입력하면<br/>바로 시작할 수 있어요
+          </h1>
+          <p class="text-gray-300">
+            계정을 만들고 주문/배송 조회, 관심상품 관리 등 다양한 기능을 이용해 보세요.
+          </p>
 
-<table width="100%" height="37" border="0" cellpadding="0"	cellspacing="0">
-	<tr>
-		<td width="15" height="37">
-			<img src="/images/ct_ttl_img01.gif" width="15" height="37"/>
-		</td>
-		<td background="/images/ct_ttl_img02.gif" width="100%" style="padding-left:10px;">
-			<table width="100%" border="0" cellspacing="0" cellpadding="0">
-				<tr>
-					<td width="93%" class="ct_ttl01">회원가입</td>
-					<td width="20%" align="right">&nbsp;</td>
-				</tr>
-			</table>
-		</td>
-		<td width="12" height="37">
-			<img src="/images/ct_ttl_img03.gif" width="12" height="37"/>
-		</td>
-	</tr>
-</table>
+          <div class="mt-8 overflow-hidden rounded-xl shadow-2xl group relative">
+            <img
+              src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=1600&auto=format&fit=crop"
+              alt="가입 환영 이미지"
+              class="w-full h-auto object-cover transform transition duration-700 group-hover:scale-105 group-hover:brightness-110"
+            />
+            <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition duration-500 flex items-center justify-center">
+              <span class="text-white font-bold">Welcome to HK Shop</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-<table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:13px;">
-	
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">
-			아이디 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle"/>
-		</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<table width="100%" border="0" cellspacing="0" cellpadding="0">
-				<tr>
-					<td width="105">
-						<input 	type="text" name="userId" class="ct_input_bg" 
-										style="width:100px; height:19px"  maxLength="20" >
-					</td>
-					<td>
-						<table border="0" cellspacing="0" cellpadding="0">
-							<tr>
-								<td width="4" height="21">
-									<img src="/images/ct_btng01.gif" width="4" height="21"/>
-								</td>
-								<td align="center" background="/images/ct_btng02.gif" class="ct_btn" style="padding-top:3px;">
-									<!-- ////////////////// jQuery Event 처리로 변경됨 ///////////////////////// 
-									<a href="javascript:fncCheckDuplication();" id="btnCmfID">ID중복확인</a>
-									 ////////////////////////////////////////////////////////////////////////////////////////////////// -->
-									 ID중복확인
-								</td>
-								<td width="4" height="21">
-									<img src="/images/ct_btng03.gif" width="4" height="21"/>
-								</td>
-							</tr>
-						</table>
-					</td>
-				</tr>
-			</table>
-		</td>
-	</tr>
-	
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">
-			비밀번호 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle"/>
-		</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<input 	type="password" name="password" class="ct_input_g" 
-							style="width:100px; height:19px"  maxLength="10" minLength="6"  />
-		</td>
-	</tr>
-	
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">
-			비밀번호 확인 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle"/>
-		</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<input 	type="password" name="password2" class="ct_input_g" 
-							style="width:100px; height:19px"  maxLength="10" minLength="6"  />
-		</td>
-	</tr>
-	
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">
-			이름 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle"/>
-		</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<input 	type="text" name="userName" class="ct_input_g" 
-							style="width:100px; height:19px"  maxLength="50" />
-		</td>
-	</tr>
-	
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">주민번호</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<input 	type="text" name="ssn" class="ct_input_g" style="width:100px; height:19px" 
-							onChange="javascript:checkSsn();"  maxLength="13" />
-			-제외, 13자리 입력
-		</td>
-	</tr>
+      <!-- Right: Sign Up Form -->
+      <div data-aos="fade-left" class="w-full">
+        <div class="mx-auto max-w-2xl">
+          <div class="rounded-2xl bg-dark-card/80 backdrop-blur border border-gray-700 shadow-2xl">
+            <div class="px-8 pt-8 pb-6">
+              <h2 class="text-2xl font-bold text-white mb-2">회원가입</h2>
+              <p class="text-gray-400 text-sm">
+                이미 계정이 있으신가요?
+                <a href="${cPath}/user/login" class="text-accent hover:underline">로그인</a>
+              </p>
+            </div>
 
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">주소</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<input		type="text" name="addr" class="ct_input_g" 
-						 	style="width:370px; height:19px"  maxLength="100"/>
-		</td>
-	</tr>
-	
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">휴대전화번호</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<select 	name="phone1" class="ct_input_g" style="width:50px; height:25px"
-							onChange="document.detailForm.phone2.focus();">
-				<option value="010" >010</option>
-				<option value="011" >011</option>
-				<option value="016" >016</option>
-				<option value="018" >018</option>
-				<option value="019" >019</option>
-			</select>
-			<input 	type="text" name="phone2" class="ct_input_g" 
-							style="width:100px; height:19px"  maxLength="9" />
-			- 
-			<input 	type="text" name="phone3" class="ct_input_g" 
-							style="width:100px; height:19px"  maxLength="9" />
-			<input type="hidden" name="phone" class="ct_input_g"  />
-		</td>
-	</tr>
+            <div class="px-8 pb-8">
+              <!-- 서버가 기대하는 필드명을 유지 -->
+              <form id="signupForm" name="detailForm" method="post" action="${cPath}/user/addUser" class="space-y-6">
+                <!-- 아이디 (자동 중복확인) -->
+                <div>
+                  <label for="userId" class="block text-sm mb-1 text-gray-300">
+                    아이디<span class="text-red-400">*</span>
+                  </label>
+                  <div class="relative">
+                    <input type="text" id="userId" name="userId" maxlength="20" autocomplete="off"
+                           class="w-full rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm placeholder-gray-500 outline-none"
+                           placeholder="영문/숫자 조합 권장"/>
+                    <!-- AJAX 결과 메시지 -->
+                    <small id="idHint" class="absolute left-1 top-[100%] mt-1 text-xs"></small>
+                  </div>
+                </div>
 
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">이메일 </td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<table border="0" cellspacing="0" cellpadding="0">
-				<tr>
-					<td height="26">
-						<!-- ////////////////// jQuery Event 처리로 변경됨 ///////////////////////// 
-						<input 	type="text" name="email" class="ct_input_g" 
-										style="width:100px; height:19px" onChange="check_email(this.form);" />
-						 ////////////////////////////////////////////////////////////////////////////////////////////////// -->
- 						<input 	type="text" name="email" class="ct_input_g" 
-										style="width:100px; height:19px" />										
-					</td>
-				</tr>
-			</table>
-		</td>
-	</tr>
+                <!-- 비밀번호 -->
+                <div class="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="password" class="block text-sm mb-1 text-gray-300">비밀번호<span class="text-red-400">*</span></label>
+                    <input type="password" id="password" name="password" maxlength="10" minlength="6" autocomplete="new-password"
+                           class="w-full rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm placeholder-gray-500 outline-none"
+                           placeholder="6~10자"/>
+                  </div>
+                  <div>
+                    <label for="password2" class="block text-sm mb-1 text-gray-300">비밀번호 확인<span class="text-red-400">*</span></label>
+                    <input type="password" id="password2" name="password2" maxlength="10" minlength="6" autocomplete="new-password"
+                           class="w-full rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm placeholder-gray-500 outline-none"
+                           placeholder="다시 입력"/>
+                  </div>
+                </div>
 
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-</table>
+                <!-- 이름 -->
+                <div>
+                  <label for="userName" class="block text-sm mb-1 text-gray-300">이름<span class="text-red-400">*</span></label>
+                  <input type="text" id="userName" name="userName" maxlength="50"
+                         class="w-full rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm placeholder-gray-500 outline-none"
+                         placeholder="이름을 입력하세요"/>
+                </div>
 
-<table width="100%" border="0" cellspacing="0" cellpadding="0"	style="margin-top:10px;">
-	<tr>
-		<td width="53%">	</td>
+                <!-- 주민번호 (선택) -->
+                <div>
+                  <label for="ssn" class="block text-sm mb-1 text-gray-300">주민번호 (선택)</label>
+                  <input type="text" id="ssn" name="ssn" maxlength="13"
+                         class="w-full rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm placeholder-gray-500 outline-none"
+                         placeholder="- 제외, 13자리 입력"/>
+                  <p class="text-xs text-gray-500 mt-1">예: 9001011234567</p>
+                </div>
 
-		<td align="right">
-			<table border="0" cellspacing="0" cellpadding="0">
-				<tr>
-					<td width="17" height="23">
-						<img src="/images/ct_btnbg01.gif" width="17" height="23"/>
-					</td>
-					<td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
-						<!-- ////////////////// jQuery Event 처리로 변경됨 ///////////////////////// 
-						<a href="javascript:fncAddUser();">가입</a>
-						 ////////////////////////////////////////////////////////////////////////////////////////////////// -->
-						가입
-					</td>
-					<td width="14" height="23">
-						<img src="/images/ct_btnbg03.gif" width="14" height="23"/>
-					</td>
-					<td width="30"></td>					
-					<td width="17" height="23">
-						<img src="/images/ct_btnbg01.gif" width="17" height="23"/>
-					</td>
-					<td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
-						<!-- ////////////////// jQuery Event 처리로 변경됨 ///////////////////////// 
-						<a href="javascript:resetData();">취소</a>
-						 ////////////////////////////////////////////////////////////////////////////////////////////////// -->
-						취소
-					</td>
-					<td width="14" height="23">
-						<img src="/images/ct_btnbg03.gif" width="14" height="23"/>
-					</td>
-				</tr>
-			</table>
-		</td>
-	</tr>
-</table>
+                <!-- 주소 -->
+                <div>
+                  <label for="addr" class="block text-sm mb-1 text-gray-300">주소</label>
+                  <input type="text" id="addr" name="addr" maxlength="100"
+                         class="w-full rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm placeholder-gray-500 outline-none"
+                         placeholder="도로명 주소"/>
+                </div>
 
-</form>
+                <!-- 휴대전화 -->
+                <div>
+                  <label class="block text-sm mb-1 text-gray-300">휴대전화번호</label>
+                  <div class="flex items-center gap-3">
+                    <select name="phone1" id="phone1"
+                            class="rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-3 py-3 text-sm outline-none">
+                      <option value="010">010</option>
+                      <option value="011">011</option>
+                      <option value="016">016</option>
+                      <option value="018">018</option>
+                      <option value="019">019</option>
+                    </select>
+                    <input type="text" name="phone2" id="phone2" maxlength="9"
+                           class="flex-1 rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm outline-none"
+                           placeholder="앞자리"/>
+                    <span class="text-gray-500">-</span>
+                    <input type="text" name="phone3" id="phone3" maxlength="9"
+                           class="flex-1 rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm outline-none"
+                           placeholder="뒷자리"/>
+                  </div>
+                  <input type="hidden" name="phone" id="phone"/>
+                </div>
 
+                <!-- 이메일 -->
+                <div>
+                  <label for="email" class="block text-sm mb-1 text-gray-300">이메일</label>
+                  <input type="text" id="email" name="email" maxlength="100"
+                         class="w-full rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm placeholder-gray-500 outline-none"
+                         placeholder="you@example.com"/>
+                </div>
+
+                <!-- Actions -->
+                <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                  <button type="button" id="registerBtn"
+                          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-accent text-white font-semibold shadow-lg shadow-accent/40 hover:bg-teal-600 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>가입</span>
+                  </button>
+                  <button type="button" id="cancelBtn"
+                          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-gray-600 text-gray-200 hover:bg-gray-700 transition-all">
+                    <i class="fa-regular fa-circle-xmark"></i>
+                    <span>취소</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div class="px-8 py-4 bg-gray-900/60 border-t border-gray-700 rounded-b-2xl text-xs text-gray-400">
+              가입과 동시에 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <%@ include file="/layout/footer.jsp" %>
+
+  <!-- AOS -->
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>AOS.init({ duration: 800, once: true });</script>
+
+  <!-- 가입/자동 중복확인 스크립트 -->
+  <script>
+    (function () {
+      const $form        = $('#signupForm');
+      const $userId      = $('#userId');
+      const $password    = $('#password');
+      const $password2   = $('#password2');
+      const $userName    = $('#userName');
+      const $email       = $('#email');
+      const $phone1      = $('#phone1');
+      const $phone2      = $('#phone2');
+      const $phone3      = $('#phone3');
+      const $phoneHidden = $('#phone');
+      const $registerBtn = $('#registerBtn');
+      const $cancelBtn   = $('#cancelBtn');
+
+      // ===== 공통 유틸 =====
+      function validateEmail() {
+        const v = ($email.val() || '').trim();
+        if (v && (v.indexOf('@') < 1 || v.indexOf('.') === -1)) {
+          alert('이메일 형식이 아닙니다.');
+          $email.focus();
+          return false;
+        }
+        return true;
+      }
+
+      function buildPhone() {
+        const p2 = ($phone2.val() || '').trim();
+        const p3 = ($phone3.val() || '').trim();
+        if (p2 && p3) {
+          $phoneHidden.val($phone1.val() + '-' + p2 + '-' + p3);
+        } else {
+          $phoneHidden.val('');
+        }
+      }
+
+      // ===== ID 자동 중복확인 =====
+      const $hint = $('#idHint');
+      let dupPending = false; // 중복 요청 방지
+      let lastChecked = '';   // 마지막으로 확인한 아이디 (불필요한 호출 방지)
+
+      function setHint(msg, type) {
+        // type: 'ok' | 'bad' | 'info'
+        const ok   = 'text-teal-400';
+        const bad  = 'text-red-400';
+        const info = 'text-gray-400';
+        $hint.removeClass('text-teal-400 text-red-400 text-gray-400')
+             .addClass(type === 'ok' ? ok : type === 'bad' ? bad : info)
+             .text(msg || '');
+      }
+
+      function parseBoolean(resp) {
+        if (typeof resp === 'boolean') return resp;
+        if (typeof resp === 'string')  return resp.trim().toLowerCase() === 'true';
+        try { return !!JSON.parse(resp); } catch (e) { return false; }
+      }
+
+      // 서버: GET /user/json/checkDuplication/{userId} (true=중복, false=사용가능)
+      function checkDupAjax(force) {
+        const id = ($userId.val() || '').trim();
+        if (!id) { setHint('아이디를 입력해 주세요.', 'info'); return Promise.resolve(false); }
+
+        // 같은 값은 중복 체크 스킵(blur/입력 이벤트 최적화)
+        if (!force && id === lastChecked) {
+          return Promise.resolve($hint.hasClass('text-teal-400')); // 이전 결과 사용: ok면 사용가능
+        }
+
+        if (dupPending) return Promise.resolve(null);
+
+        dupPending = true;
+        setHint('확인 중...', 'info');
+
+        return $.ajax({
+          url: '${cPath}/user/json/checkDuplication/' + encodeURIComponent(id),
+          method: 'GET'
+        }).then(function(resp) {
+          lastChecked = id;
+          const isDup = parseBoolean(resp); // true=중복
+          if (isDup) {
+            setHint('이미 사용 중인 아이디입니다.', 'bad');
+          } else {
+            setHint('사용 가능한 아이디입니다.', 'ok');
+          }
+          return !isDup; // 사용 가능 여부
+        }).catch(function() {
+          setHint('확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'bad');
+          return false;
+        }).always(function() {
+          dupPending = false;
+        });
+      }
+
+      // 입력 중엔 힌트 초기화, 멈춤 후(디바운스) 자동 확인
+      let debounceTimer = null;
+      $userId.on('input', function(){
+        setHint('', 'info');
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => { checkDupAjax(false); }, 500);
+      });
+
+      // 포커스 아웃 시 강제 확인
+      $userId.on('blur', function(){ if ($userId.val().trim()) checkDupAjax(true); });
+
+      // ===== 제출(onSubmit): 유효성 -> 최종 중복검사 -> 제출 =====
+      async function onSubmit() {
+        if (!$userId.val().trim())    { alert('아이디는 반드시 입력하셔야 합니다.'); $userId.focus(); return; }
+        if (!$password.val().trim())  { alert('패스워드는 반드시 입력하셔야 합니다.'); $password.focus(); return; }
+        if (!$password2.val().trim()) { alert('패스워드 확인은 반드시 입력하셔야 합니다.'); $password2.focus(); return; }
+        if ($password.val() !== $password2.val()) { alert('비밀번호 확인이 일치하지 않습니다.'); $password2.focus(); return; }
+        if (!$userName.val().trim())  { alert('이름은 반드시 입력하셔야 합니다.'); $userName.focus(); return; }
+        if (!validateEmail())         { return; }
+
+        // 최종 중복확인 (사용 가능해야 진행)
+        const usable = await checkDupAjax(true);
+        if (usable !== true) { // false 또는 오류(null)
+          if (usable === false) {
+            alert('이미 사용 중인 아이디입니다. 다른 아이디를 입력해 주세요.');
+          }
+          $userId.focus();
+          return;
+        }
+
+        // 전화번호 hidden 구성 후 제출
+        buildPhone();
+        $form.trigger('submit');
+      }
+
+      // 이벤트 바인딩
+      $('#registerBtn').on('click', onSubmit);
+      $('#cancelBtn').on('click', function(){ $form[0].reset(); setHint('', 'info'); lastChecked=''; });
+
+      // Enter 키: onSubmit (아이디 칸에서도 Enter 시 최종 검사 후 제출)
+      $form.on('keydown', function(e){
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          onSubmit();
+        }
+      });
+    })();
+  </script>
 </body>
-
 </html>
