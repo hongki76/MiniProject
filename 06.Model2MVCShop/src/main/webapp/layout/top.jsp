@@ -14,22 +14,26 @@
 
         <c:if test="${not empty sessionScope.user && sessionScope.user.role == 'user'}">
           <div id="orders-desktop" class="relative">
-            <a href="${cPath}/purchase/getPurchaseList"
+            <!-- ▼ a → button 으로 변경 (링크 제거) -->
+            <button
                id="orders-trigger"
+               type="button"
                class="inline-flex items-center gap-2 px-4 py-2 hover:text-accent transition-colors"
-               aria-haspopup="true" aria-expanded="false">
+               aria-haspopup="true" aria-expanded="false" aria-controls="orders-menu">
               ORDERS
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 0 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
               </svg>
-            </a>
+            </button>
+
             <div id="orders-menu"
                  class="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-48 rounded-md shadow-lg bg-dark-card ring-1 ring-black/50
                         invisible opacity-0 translate-y-1 transition-all duration-150 z-50
                         before:content-[''] before:absolute before:-top-2 before:left-0 before:right-0 before:h-3">
               <div class="py-1" role="menu" aria-orientation="vertical">
+                <!-- ▼ HISTORY → PURCHASES -->
                 <a href="${cPath}/purchase/getPurchaseList"
-                   class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-accent" role="menuitem">HISTORY</a>
+                   class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-accent" role="menuitem">PURCHASES</a>
                 <a href="${cPath}/purchase/getPurchaseList?type=cancel"
                    class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-accent" role="menuitem">CANCELLATIONS</a>
                 <a href="${cPath}/purchase/getPurchaseList?type=return"
@@ -76,7 +80,8 @@
           <i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="orders-icon" aria-hidden="true"></i>
         </button>
         <div id="orders-submenu" class="pl-6 pt-1 hidden space-y-1">
-          <a href="${cPath}/purchase/getPurchaseList" class="block px-3 py-1 text-sm text-gray-400 hover:bg-gray-700 hover:text-accent rounded">HISTORY</a>
+          <!-- ▼ HISTORY → PURCHASES -->
+          <a href="${cPath}/purchase/getPurchaseList" class="block px-3 py-1 text-sm text-gray-400 hover:bg-gray-700 hover:text-accent rounded">PURCHASES</a>
           <a href="${cPath}/purchase/getPurchaseList?type=cancel" class="block px-3 py-1 text-sm text-gray-400 hover:bg-gray-700 hover:text-accent rounded">CANCELLATIONS</a>
           <a href="${cPath}/purchase/getPurchaseList?type=return" class="block px-3 py-1 text-sm text-gray-400 hover:bg-gray-700 hover:text-accent rounded">RETURNS</a>
         </div>
@@ -98,7 +103,6 @@
 <!-- ▼ 공통 네비게이션 스크립트: 모든 페이지에서 동작 -->
 <script>
 (function () {
-  // 안전 가드
   const $ = (sel) => document.querySelector(sel);
 
   // 1) 모바일 메뉴 토글
@@ -106,13 +110,12 @@
   const menuPanel = $('#menu-panel');
   if (menuBtn && menuPanel) {
     menuBtn.addEventListener('click', () => {
-      const willHide = !menuPanel.classList.toggle('hidden'); // toggle 후 hidden 여부
-      // aria-expanded 업데이트
+      const willHide = !menuPanel.classList.toggle('hidden');
       menuBtn.setAttribute('aria-expanded', String(!willHide));
     });
   }
 
-  // 2) 모바일 ORDERS 서브메뉴 토글(로그인 사용자 전용)
+  // 2) 모바일 ORDERS 서브메뉴 토글
   const ordersToggle  = $('#orders-toggle');
   const ordersSubmenu = $('#orders-submenu');
   const ordersIcon    = $('#orders-icon');
@@ -124,7 +127,7 @@
     });
   }
 
-  // 3) 데스크탑 ORDERS 드롭다운(로그인 사용자 전용)
+  // 3) 데스크탑 ORDERS 드롭다운
   const wrap    = $('#orders-desktop');
   const trigger = $('#orders-trigger');
   const menu    = $('#orders-menu');
