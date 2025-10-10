@@ -56,10 +56,11 @@ public class UserServiceImpl implements UserService{
 	}
 
 	public boolean checkDuplication(String userId) throws Exception {
-		boolean result=true;
+		boolean result=false;
 		User user=userDao.getUser(userId);
+		System.out.println("### UserServiceImpl.checkDuplication() - user.userId(" + user.getUserId() + ")");
 		if(user != null) {
-			result=false;
+			result=true;
 		}
 		return result;
 	}

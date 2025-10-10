@@ -41,7 +41,7 @@
 
         <div class="flex items-center gap-4 pl-2">
           <c:if test="${not empty sessionScope.user}">
-            <a href="${cPath}/user/myPage" class="text-gray-400 hover:text-accent transition-colors" aria-label="My Page">
+            <a href="${cPath}/user/getUser?userId=${sessionScope.user.userId}" class="text-gray-400 hover:text-accent transition-colors" aria-label="My Page">
               <i class="fa-regular fa-user h-5 w-5"></i>
             </a>
           </c:if>

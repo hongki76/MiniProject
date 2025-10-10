@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 
   <!-- jQuery -->
-  <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 
 <body class="min-h-screen bg-gradient-to-b from-gray-900 to-dark-bg text-dark-text">
@@ -176,7 +176,7 @@
                   <button type="button" id="cancelBtn"
                           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-gray-600 text-gray-200 hover:bg-gray-700 transition-all">
                     <i class="fa-regular fa-circle-xmark"></i>
-                    <span>취소</span>
+                    <span>입력취소</span>
                   </button>
                 </div>
               </form>
@@ -250,10 +250,29 @@
       }
 
       function parseBoolean(resp) {
-        if (typeof resp === 'boolean') return resp;
-        if (typeof resp === 'string')  return resp.trim().toLowerCase() === 'true';
-        try { return !!JSON.parse(resp); } catch (e) { return false; }
-      }
+    	  console.log("=== [DEBUG] parseBoolean called ===");
+    	  console.log("typeof resp:", typeof resp, " | value:", resp);
+
+    	  if (typeof resp === 'boolean') {
+    	    console.log("→ boolean detected → return", resp);
+    	    return resp;
+    	  }
+    	  if (typeof resp === 'string') {
+    	    const normalized = resp.trim().toLowerCase();
+    	    const result = normalized === 'true';
+    	    console.log("→ string detected:", normalized, "→ return", result);
+    	    return result;
+    	  }
+    	  try {
+    	    const parsed = JSON.parse(resp);
+    	    const result = !!parsed;
+    	    console.log("→ parsed JSON:", parsed, "→ return", result);
+    	    return result;
+    	  } catch (e) {
+    	    console.warn("→ parse error:", e, "→ fallback to false");
+    	    return false;
+    	  }
+    	}
 
       // 서버: GET /user/json/checkDuplication/{userId} (true=중복, false=사용가능)
       function checkDupAjax(force) {
