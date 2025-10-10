@@ -89,7 +89,8 @@ public class UserController {
 		
 		return "forward:/user/updateUser.jsp";
 	}
-	
+
+	@RequestMapping( value="updateUser", method=RequestMethod.POST )
 	public String updateUser( @ModelAttribute("user") User user , Model model , HttpSession session) throws Exception{
 
 		System.out.println("/user/updateUser : POST");
@@ -99,7 +100,10 @@ public class UserController {
 		
 		String sessionId=((User)session.getAttribute("user")).getUserId();
 		if(sessionId.equals(user.getUserId())){
-			session.setAttribute("user", user);
+			User dbUser = userService.getUser(user.getUserId());
+			if(dbUser != null) {
+				session.setAttribute("user", dbUser);
+			}
 		}
 		
 		return "redirect:/user/getUser?userId="+user.getUserId();

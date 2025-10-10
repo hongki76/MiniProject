@@ -9,6 +9,7 @@
   <title>HK Shop | Dark Mode</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -26,6 +27,7 @@
     }
   </script>
 
+  <!-- AOS / Icons -->
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 </head>
@@ -35,6 +37,7 @@
   <%@ include file="/layout/top.jsp" %>
   
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <!-- Hero -->
     <section class="rounded-xl overflow-hidden bg-gradient-to-r from-gray-900 to-dark-card shadow-2xl shadow-accent/20 mt-8" data-aos="zoom-in">
       <div class="px-8 py-16 md:px-16 flex flex-col md:flex-row items-center gap-10">
         <div class="md:w-1/2">
@@ -58,22 +61,24 @@
             </c:if>
           </div>
         </div>
-		<div class="md:w-1/2 mt-8 md:mt-0">
-		  <div class="overflow-hidden rounded-xl shadow-2xl group relative">
-		    <img src="https://ix-marketing.imgix.net/autotagging.png?auto=format,compress&w=1446"
-		         alt="미니멀 제품 콜라주"
-		         class="w-full h-auto object-cover rounded-xl transform transition duration-700 group-hover:scale-110 group-hover:brightness-110"/>
-		    <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition duration-500 flex items-center justify-center">
-		      <span class="text-white font-bold text-lg">Discover More</span>
-		    </div>
-		  </div>
-		</div>
+
+        <div class="md:w-1/2 mt-8 md:mt-0">
+          <div class="overflow-hidden rounded-xl shadow-2xl group relative">
+            <img src="https://ix-marketing.imgix.net/autotagging.png?auto=format,compress&w=1446"
+                 alt="미니멀 제품 콜라주"
+                 class="w-full h-auto object-cover rounded-xl transform transition duration-700 group-hover:scale-110 group-hover:brightness-110"/>
+            <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition duration-500 flex items-center justify-center">
+              <span class="text-white font-bold text-lg">Discover More</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
+    <!-- Today PICK -->
     <section class="mt-20" data-aos="fade-up">
       <h2 class="text-3xl font-bold mb-8 flex items-center gap-3 text-white">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-4 0a2 2 0 002-2h-4a2 2 0 002 2z"/>
         </svg>
         오늘의 <span class="text-accent">PICK</span>
@@ -121,60 +126,16 @@
 
   <%@ include file="/layout/footer.jsp" %>
 
+  <!-- 페이지 전용 스크립트 (네비 관련 스크립트 없음) -->
   <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
-
-    // Mobile menu toggle
-    document.getElementById('menu-btn').addEventListener('click', () => {
-      document.getElementById('menu-panel').classList.toggle('hidden');
-    });
-
-    // Mobile ORDERS submenu toggle
+    // 푸터 연도 표시 (footer.jsp 내 #y 가정)
     (function(){
-      const t = document.getElementById('orders-toggle');
-      const m = document.getElementById('orders-submenu');
-      const i = document.getElementById('orders-icon');
-      if (!t) return;
-      t.addEventListener('click', () => {
-        const hidden = m.classList.toggle('hidden');
-        i.classList.toggle('rotate-180', !hidden);
-      });
-    })();
-
-    // Desktop ORDERS dropdown (stable)
-    (function(){
-      const wrap   = document.getElementById('orders-desktop');
-      if (!wrap) return;
-      const trigger = document.getElementById('orders-trigger');
-      const menu    = document.getElementById('orders-menu');
-      const arrow   = trigger.querySelector('svg');
-      let hideTimer;
-
-      const open = () => {
-        clearTimeout(hideTimer);
-        menu.classList.remove('invisible','opacity-0','translate-y-1');
-        trigger.setAttribute('aria-expanded','true');
-        arrow.classList.add('rotate-180');
-      };
-      const close = () => {
-        menu.classList.add('invisible','opacity-0','translate-y-1');
-        trigger.setAttribute('aria-expanded','false');
-        arrow.classList.remove('rotate-180');
-      };
-
-      // 마우스 이벤트: 드롭다운 영역 전체에 걸쳐 hover 상태 유지
-      wrap.addEventListener('mouseenter', open);
-      wrap.addEventListener('mouseleave', () => { hideTimer = setTimeout(close, 180); });
-      menu.addEventListener('mouseenter', () => clearTimeout(hideTimer));
-      menu.addEventListener('mouseleave', () => { hideTimer = setTimeout(close, 180); });
-      
-      // 키보드 접근성 이벤트
-      trigger.addEventListener('focus', open);
-      trigger.addEventListener('blur',  () => { hideTimer = setTimeout(close, 180); });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+      var yEl = document.getElementById('y');
+      if (yEl) yEl.textContent = new Date().getFullYear();
     })();
   </script>
 
+  <!-- AOS -->
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
   <script>AOS.init({ duration: 800, once: true });</script>
 </body>

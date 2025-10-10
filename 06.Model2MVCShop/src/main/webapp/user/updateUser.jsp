@@ -1,265 +1,227 @@
 <%@ page contentType="text/html; charset=UTF-8" %>
 <%@ page pageEncoding="UTF-8" %>
-
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="cPath" value="${pageContext.request.contextPath}" />
 
 <!DOCTYPE html>
-<html>
-
+<html lang="ko">
 <head>
-	<meta charset="UTF-8">
-	<title>회원 정보 수정</title>
-	
-	<link rel="stylesheet" href="/css/admin.css" type="text/css">
-	
-	<!-- CDN(Content Delivery Network) 호스트 사용 -->
-	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-	<script type="text/javascript">
-		
-		//=====기존Code 주석 처리 후  jQuery 변경 ======//
-		function fncUpdateUser() {
-			// Form 유효성 검증
-			//var name=document.detailForm.userName.value;
-			var name=$("input[name='userName']").val();
-			
-			if(name == null || name.length <1){
-				alert("이름은  반드시 입력하셔야 합니다.");
-				return;
-			}
-				
-			//if(document.detailForm.phone2.value != "" && document.detailForm.phone2.value != "") {
-			//	document.detailForm.phone.value = document.detailForm.phone1.value + "-" + document.detailForm.phone2.value + "-" + document.detailForm.phone3.value;
-			//} else {
-			//	document.detailForm.phone.value = "";
-			//}
-			
-			var value = "";	
-			if( $("input[name='phone2']").val() != ""  &&  $("input[name='phone3']").val() != "") {
-				var value = $("option:selected").val() + "-" 
-									+ $("input[name='phone2']").val() + "-" 
-									+ $("input[name='phone3']").val();
-			}
-			
-			//Debug...
-			//alert("phone : "+value);
-			$("input:hidden[name='phone']").val( value );
-				
-			//	document.detailForm.action='/user/updateUser';
-			//document.detailForm.submit();
-			$("form").attr("method" , "POST").attr("action" , "/user/updateUser").submit();
-		}//===========================================//
-		//==> 추가된부분 : "수정"  Event 연결
-		 $(function() {
-			//==> DOM Object GET 3가지 방법 ==> 1. $(tagName) : 2.(#id) : 3.$(.className)
-			//==> 1 과 3 방법 조합 : $("tagName.className:filter함수") 사용함.	
-			 $( "td.ct_btn01:contains('수정')" ).on("click" , function() {
-				//Debug..
-				//alert(  $( "td.ct_btn01:contains('수정')" ).html() );
-				fncUpdateUser();
-			});
-		});	
-		
-	
-		 /*============= jQuery 변경 주석처리 =============
-		function check_email(frm) {
-				var email=document.detailForm.email.value;
-			    if(email != "" && (email.indexOf('@') < 1 || email.indexOf('.') == -1)){
-			    	alert("이메일 형식이 아닙니다.");
-					return false;
-			    }
-			    return true;
-		}========================================	*/
-		//==> 추가된부분 : "이메일" 유효성Check  Event 처리 및 연결
-		 $(function() {
-			 
-			 $("input[name='email']").on("change" , function() {
-					
-				 var email=$("input[name='email']").val();
-			    
-				 if(email != "" && (email.indexOf('@') < 1 || email.indexOf('.') == -1) ){
-			    	alert("이메일 형식이 아닙니다.");
-			     }
-			});
-			 
-		});	
-		
-		
-	 	/*============= jQuery 변경 주석처리 =============
-		function resetData() {
-			document.detailForm.reset();
-		}========================================	*/
-		//==> 추가된부분 : "취소"  Event 연결 및 처리
-		 $(function() {
-			//==> DOM Object GET 3가지 방법 ==> 1. $(tagName) : 2.(#id) : 3.$(.className)
-			//==> 1 과 3 방법 조합 : $("tagName.className:filter함수") 사용함.	
-			 $( "td.ct_btn01:contains('취소')" ).on("click" , function() {
-				//Debug..
-				//alert(  $( "td.ct_btn01:contains('취소')" ).html() );
-				history.go(-1);
-			});
-		});
-	
-	</script>		
-	
+  <meta charset="UTF-8" />
+  <title>회원 정보 수정 | HK Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Tailwind (getUser.jsp와 동일 팔레트) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            accent:    '#14b8a6',
+            'dark-bg': '#1f2937',
+            'dark-card':'#374151',
+            'dark-text':'#f3f4f6',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- AOS / Icons -->
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 </head>
 
-<body bgcolor="#ffffff" text="#000000">
+<body class="min-h-screen bg-gradient-to-b from-gray-900 to-dark-bg text-dark-text">
+  <%@ include file="/layout/top.jsp" %>
 
-<!-- ////////////////// jQuery Event 처리로 변경됨 ///////////////////////// 
-<form name="detailForm"  method="post" >
-////////////////////////////////////////////////////////////////////////////////////////////////// -->
-<form name="detailForm" >
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <section class="grid lg:grid-cols-2 gap-10 items-start">
+      <!-- Left Visual -->
+      <div data-aos="fade-right" class="hidden lg:block">
+        <div class="rounded-2xl bg-gradient-to-br from-dark-card to-gray-800 p-10 shadow-2xl shadow-accent/20 sticky top-6">
+          <p class="text-sm font-semibold text-accent tracking-widest mb-3">EDIT PROFILE</p>
+          <h1 class="text-4xl font-extrabold text-white leading-tight mb-4">
+            정보를 최신으로 유지하세요
+          </h1>
+          <p class="text-gray-300">
+            이름, 연락처, 이메일, 주소를 수정하고 저장할 수 있습니다.
+          </p>
 
-<input type="hidden" name="userId" value="${user.userId }">
+          <div class="mt-8 overflow-hidden rounded-xl shadow-2xl group relative">
+            <img
+              src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=1600&auto=format&fit=crop"
+              alt="프로필 수정 이미지"
+              class="w-full h-auto object-cover transform transition duration-700 group-hover:scale-105 group-hover:brightness-110"
+            />
+            <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition duration-500 flex items-center justify-center">
+              <span class="text-white font-bold">Update Your Info</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-<table width="100%" height="37" border="0" cellpadding="0"	cellspacing="0">
-	<tr>
-		<td width="15" height="37">
-			<img src="/images/ct_ttl_img01.gif" width="15" height="37"/>
-		</td>
-		<td background="/images/ct_ttl_img02.gif" width="100%" style="padding-left:10px;">
-			<table width="100%" border="0" cellspacing="0" cellpadding="0">
-				<tr>
-					<td width="93%" class="ct_ttl01">회원정보수정</td>
-					<td width="20%" align="right">&nbsp;</td>
-				</tr>
-			</table>
-		</td>
-		<td width="12" height="37">
-			<img src="/images/ct_ttl_img03.gif" width="12" height="37" />
-		</td>
-	</tr>
-</table>
+      <!-- Right: Update Form -->
+      <div data-aos="fade-left" class="w-full">
+        <div class="mx-auto max-w-2xl">
+          <div class="rounded-2xl bg-dark-card/80 backdrop-blur border border-gray-700 shadow-2xl">
+            <!-- Header -->
+            <div class="px-8 pt-8 pb-6">
+              <h2 class="text-2xl font-bold text-white mb-2">회원정보수정</h2>
+              <p class="text-gray-400 text-sm">
+                변경 후 <span class="text-accent font-semibold">저장</span>을 눌러 주세요.
+              </p>
+            </div>
 
-<table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:13px;">
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">
-			아이디 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" />
-		</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">${user.userId}	</td>
-	</tr>
-	
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">
-			이름 <img src="/images/ct_icon_red.gif" width="3" height="3" align="absmiddle" />
-		</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<input 	type="text" name="userName" value="${user.userName}" class="ct_input_g" 
-							style="width:100px; height:19px"  maxLength="50" >
-		</td>
-	</tr>
-	
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">주소</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<input 	type="text" name="addr" value="${user.addr}" class="ct_input_g" 
-							style="width:370px; height:19px"  maxLength="100">
-		</td>
-	</tr>
-	
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">휴대전화번호</td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<select name="phone1" class="ct_input_g" style="width:50px; height:25px" 
-							onChange="document.detailForm.phone2.focus();">
-				<option value="010" ${ ! empty user.phone1 && user.phone1 == "010" ? "selected" : ""  } >010</option>
-				<option value="011" ${ ! empty user.phone1 && user.phone1 == "011" ? "selected" : ""  } >011</option>
-				<option value="016" ${ ! empty user.phone1 && user.phone1 == "016" ? "selected" : ""  } >016</option>
-				<option value="018" ${ ! empty user.phone1 && user.phone1 == "018" ? "selected" : ""  } >018</option>
-				<option value="019" ${ ! empty user.phone1 && user.phone1 == "019" ? "selected" : ""  } >019</option>
-				
-			</select>
-			<input 	type="text" name="phone2" value="${ ! empty user.phone2 ? user.phone2 : ''}" 
-							class="ct_input_g" style="width:100px; height:19px"  maxLength="9" >
-			- 
-			<input 	type="text" name="phone3" value="${ ! empty user.phone3 ? user.phone3 : ''}"  
-							class="ct_input_g"  style="width:100px; height:19px"  maxLength="9" >
-							
-			<input type="hidden" name="phone" class="ct_input_g"  />
-		</td>
-	</tr>
+            <!-- Form -->
+            <div class="px-8 pb-8">
+              <form id="updateForm" name="detailForm" method="post" action="${cPath}/user/updateUser" class="space-y-6">
+                <input type="hidden" name="userId" value="${user.userId}" />
+                <input type="hidden" name="phone" id="phone" />
 
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-	
-	<tr>
-		<td width="104" class="ct_write">이메일 </td>
-		<td bgcolor="D6D6D6" width="1"></td>
-		<td class="ct_write01">
-			<!-- ////////////////// jQuery Event 처리로 변경됨 ///////////////////////// 
-			<input 	type="text" name="email" value="${user.email}" class="ct_input_g" 
-							style="width:100px; height:19px" onChange="check_email(this.form);">
-			 ////////////////////////////////////////////////////////////////////////////////////////////////// -->
-			<input 	type="text" name="email" value="${user.email}" class="ct_input_g" 
-							style="width:100px; height:19px">
-		</td>
-	</tr>
-	
-	<tr>
-		<td height="1" colspan="3" bgcolor="D6D6D6"></td>
-	</tr>
-</table>
+                <!-- 아이디 (읽기전용) -->
+                <div>
+                  <label class="block text-sm mb-1 text-gray-300">아이디</label>
+                  <div class="w-full rounded-lg bg-gray-800/70 border border-gray-600 px-4 py-3 text-sm text-gray-400">
+                    <c:out value="${user.userId}" />
+                  </div>
+                </div>
 
-<table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-top:10px;">
-	<tr>
-		<td width="53%">	</td>
-		<td align="right">
-			<table border="0" cellspacing="0" cellpadding="0">
-				<tr>
-					<td width="17" height="23">
-						<img src="/images/ct_btnbg01.gif" width="17" height="23" />
-					</td>
-					<td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
-						<!-- ////////////////// jQuery Event 처리로 변경됨 ///////////////////////// 
-						<a href="javascript:fncUpdateUser();">수정</a>
-						 ////////////////////////////////////////////////////////////////////////////////////////////////// -->
-						 수정
-					</td>
-					<td width="14" height="23">
-						<img src="/images/ct_btnbg03.gif" width="14" height="23" />
-					</td>
-					<td width="30"></td>					
-					<td width="17" height="23">
-						<img src="/images/ct_btnbg01.gif" width="17" height="23" />
-					</td>
-					<td background="/images/ct_btnbg02.gif" class="ct_btn01" style="padding-top:3px;">
-						<!-- ////////////////// jQuery Event 처리로 변경됨 ///////////////////////// 
-						<a href="javascript:resetData();">취소</a>
-						 ////////////////////////////////////////////////////////////////////////////////////////////////// -->
-						 취소
-					</td>
-					<td width="14" height="23">
-						<img src="/images/ct_btnbg03.gif" width="14" height="23" />
-					</td>
-				</tr>
-			</table>
-		</td>
-	</tr>
-</table>
+                <!-- 이름 -->
+                <div>
+                  <label for="userName" class="block text-sm mb-1 text-gray-300">이름<span class="text-red-400">*</span></label>
+                  <input type="text" id="userName" name="userName" maxlength="50"
+                         value="${user.userName}"
+                         class="w-full rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm placeholder-gray-500 outline-none"
+                         placeholder="이름을 입력하세요"/>
+                </div>
 
-</form>
+                <!-- 주소 -->
+                <div>
+                  <label for="addr" class="block text-sm mb-1 text-gray-300">주소</label>
+                  <input type="text" id="addr" name="addr" maxlength="100"
+                         value="${user.addr}"
+                         class="w-full rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm placeholder-gray-500 outline-none"
+                         placeholder="도로명 주소"/>
+                </div>
 
+                <!-- 휴대전화 -->
+                <div>
+                  <label class="block text-sm mb-1 text-gray-300">휴대전화번호</label>
+                  <div class="flex items-center gap-3">
+                    <select name="phone1" id="phone1"
+                            class="rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-3 py-3 text-sm outline-none">
+                      <option value="010" ${ ! empty user.phone1 && user.phone1 == "010" ? "selected" : "" }>010</option>
+                      <option value="011" ${ ! empty user.phone1 && user.phone1 == "011" ? "selected" : "" }>011</option>
+                      <option value="016" ${ ! empty user.phone1 && user.phone1 == "016" ? "selected" : "" }>016</option>
+                      <option value="018" ${ ! empty user.phone1 && user.phone1 == "018" ? "selected" : "" }>018</option>
+                      <option value="019" ${ ! empty user.phone1 && user.phone1 == "019" ? "selected" : "" }>019</option>
+                    </select>
+                    <input type="text" name="phone2" id="phone2" maxlength="9"
+                           value="${ ! empty user.phone2 ? user.phone2 : ''}"
+                           class="flex-1 rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm outline-none"
+                           placeholder="앞자리"/>
+                    <span class="text-gray-500">-</span>
+                    <input type="text" name="phone3" id="phone3" maxlength="9"
+                           value="${ ! empty user.phone3 ? user.phone3 : ''}"
+                           class="flex-1 rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm outline-none"
+                           placeholder="뒷자리"/>
+                  </div>
+                </div>
+
+                <!-- 이메일 -->
+                <div>
+                  <label for="email" class="block text-sm mb-1 text-gray-300">이메일</label>
+                  <input type="text" id="email" name="email" maxlength="100"
+                         value="${user.email}"
+                         class="w-full rounded-lg bg-gray-800/70 border border-gray-600 focus:border-accent focus:ring-2 focus:ring-accent/40 px-4 py-3 text-sm placeholder-gray-500 outline-none"
+                         placeholder="you@example.com"/>
+                </div>
+
+                <!-- Actions (취소 버튼 제거) -->
+                <div class="pt-2">
+                  <button type="button" id="updateBtn"
+                          class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-accent text-white font-semibold shadow-lg shadow-accent/40 hover:bg-teal-600 transition-all">
+                    <i class="fa-regular fa-floppy-disk"></i>
+                    <span>저장</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-8 py-4 bg-gray-900/60 border-t border-gray-700 rounded-b-2xl text-xs text-gray-400">
+              수정 사항은 저장 후 즉시 반영됩니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <%@ include file="/layout/footer.jsp" %>
+
+  <!-- AOS -->
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>AOS.init({ duration: 800, once: true });</script>
+
+  <!-- 업데이트 스크립트 -->
+  <script>
+    (function () {
+      const $form     = $('#updateForm');
+      const $userName = $('#userName');
+      const $email    = $('#email');
+      const $phone1   = $('#phone1');
+      const $phone2   = $('#phone2');
+      const $phone3   = $('#phone3');
+      const $phoneH   = $('#phone');
+      const $btn      = $('#updateBtn');
+
+      function validateEmail() {
+        const v = ($email.val() || '').trim();
+        if (v && (v.indexOf('@') < 1 || v.indexOf('.') === -1)) {
+          alert('이메일 형식이 아닙니다.');
+          $email.focus();
+          return false;
+        }
+        return true;
+      }
+
+      function buildPhone() {
+        const p2 = ($phone2.val() || '').trim();
+        const p3 = ($phone3.val() || '').trim();
+        if (p2 && p3) {
+          $phoneH.val($phone1.val() + '-' + p2 + '-' + p3);
+        } else {
+          $phoneH.val('');
+        }
+      }
+
+      function onSubmit() {
+        if (!($userName.val() || '').trim()) { alert('이름은 반드시 입력하셔야 합니다.'); $userName.focus(); return; }
+        if (!validateEmail()) return;
+        buildPhone();
+        $form.attr('method','POST').attr('action','${cPath}/user/updateUser').trigger('submit');
+      }
+
+      // 저장 버튼
+      $btn.on('click', onSubmit);
+
+      // Enter로도 저장
+      $form.on('keydown', function(e){
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          onSubmit();
+        }
+      });
+
+      // 이메일 즉시 검증(선택)
+      $email.on('change', validateEmail);
+    })();
+  </script>
 </body>
-
 </html>

@@ -29,7 +29,7 @@
 	 <!-- SQL : SELECT ONE -->
 	 <select 	id="getUser"	parameterType="string"	resultMap="userSelectMap">
 		SELECT
-		user_id , user_name , password , role ,  cell_phone ,  addr , email , reg_date 		
+		user_id, user_name, password, role, ssn, cell_phone, addr , email , reg_date 		
 		FROM users 
 		WHERE user_id = #{value}
 	 </select>
